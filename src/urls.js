@@ -38,17 +38,60 @@ export const parseMainPageHTML = async (html) => {
 
   const articleArray = document.querySelectorAll("#archive_wrapper article");
 
-  const fiveArray = [];
-  const eightArray = [];
+  const pageArray = [];
   for (let i = 0; i < articleArray.length; i++) {
-    const article = articleArray[i];
-    const broadcastHead = article.querySelector(".broadcast-head");
-    if (!broadcastHead || !broadcastHead.textContent) continue;
-    
-    const broadcastHeadText = broadcastHead.textContent.trim();
-    console.log(broadcastHeadText);
+    try {
+      const articleObj = await getArticleObj(articleArray[i]);
+      if (!articleObj) continue;
+      pageArray.push(articleObj);
+    } catch (e) {
+      console.log(`ERROR! ${e.message} \n --------------------------------\n`);
+      console.log(`ARTICLE HTML: ${e.article} \n --------------------------------\n`);
+      continue;
+    }
   }
 
-  // console.log("ARTICLE ARRAY");
-  // console.log(articleArray.length);
+  return pageArray;
+};
+
+export const getArticleObj = async (article) => {
+  if (!article) return null;
+
+  //throws errors on fail
+  const broadcastHeadText = await getBroadcastHead(article);
+  const linkElement = await getLinkElement(article);
+
+  const articleObj = {
+    url: linkElement.href,
+    title: linkElement.textContent.trim(),
+    type: broadcastHeadText,
+  };
+
+  console.log("ARTICLE OBJ");
+  console.log(articleObj);
+
+  return articleObj;
+};
+
+export const getBroadcastHead = async (article) => {
+  const broadcastHead = article.querySelector(".broadcast-head");
+  if (!broadcastHead || !broadcastHead.textContent) {
+    const error = new Error("CANT EXTRACT BROADCAST HEAD FROM ARTICLE");
+    error.article = article;
+    throw error;
+  }
+
+  const broadcastHeadText = broadcastHead.textContent.trim();
+  return broadcastHeadText;
+};
+
+export const getLinkElement = async (article) => {
+  const linkElement = article.querySelector("h4 a");
+  if (!linkElement) {
+    const error = new Error("CANT EXTRACT LINK FROM ARTICLE");
+    error.article = article;
+    throw error;
+  }
+
+  return linkElement;
 };
