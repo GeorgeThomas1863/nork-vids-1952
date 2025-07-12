@@ -39,5 +39,5 @@ export const parseMainPageHTML = async (html) => {
   const articleArray = document.querySelectorAll("#archive_wrapper article");
 
   console.log("ARTICLE ARRAY");
-  console.log(articleArray);
+  console.log(articleArray.length);
 };
