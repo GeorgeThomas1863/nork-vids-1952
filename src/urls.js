@@ -38,6 +38,14 @@ export const parseMainPageHTML = async (html) => {
 
   const articleArray = document.querySelectorAll("#archive_wrapper article");
 
-  console.log("ARTICLE ARRAY");
-  console.log(articleArray.length);
+  const fiveArray = [];
+  const eightArray = [];
+  for (let i = 0; i < articleArray.length; i++) {
+    const article = articleArray[i];
+    const broadcastHead = article.querySelector(".broadcast-head");
+    console.log(broadcastHead);
+  }
+
+  // console.log("ARTICLE ARRAY");
+  // console.log(articleArray.length);
 };
