@@ -1,6 +1,6 @@
 import CONFIG from "../config/config.js";
 import dbModel from "./db-model.js";
-import { scrapeState } from "../src/scrape-state.js";
+import { scrapeState } from "../src/state.js";
 
 class Log {
   constructor(dataObject) {
