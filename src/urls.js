@@ -60,15 +60,17 @@ export const getArticleObj = async (article) => {
   //throws errors on fail
   const broadcastHeadText = await getBroadcastHead(article);
   const linkElement = await getLinkElement(article);
+  const dateText = await getDateText(article);
+  const baseURL = "https://kcnawatch.org";
 
   const articleObj = {
-    url: linkElement.href,
+    url: baseURL + linkElement.href,
     title: linkElement.textContent.trim(),
     type: broadcastHeadText,
   };
 
-  console.log("ARTICLE OBJ");
-  console.log(articleObj);
+  // console.log("ARTICLE OBJ");
+  // console.log(articleObj);
 
   return articleObj;
 };
@@ -94,4 +96,15 @@ export const getLinkElement = async (article) => {
   }
 
   return linkElement;
+};
+
+export const getDateText = async (article) => {
+  const h4Element = article.querySelector("h4 a");
+  const dateTextRaw = h4Element.textContent.trim();
+
+  const dateText = dateTextRaw.split(" ")[0];
+  console.log("DATE TEXT");
+  console.log(dateText);
+
+  return dateText;
 };
