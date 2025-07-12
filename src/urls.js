@@ -1,3 +1,5 @@
+import { writeFileSync } from "fs";
+
 import { JSDOM } from "jsdom";
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
@@ -20,11 +22,12 @@ export const getMainPageData = async () => {
 
   console.log("KCNA WATCH HTML");
   console.log(mainPageHTML);
-  // const htmlModel = new scrapeKCNAWatch
+  // const htmlModel = new scrapeKCNAWatchs
 };
 
 export const parseMainPageHTML = async (html) => {
+  writeFileSync("mainPageHTML.html", html);
   // Parse the HTML using JSDOM
-  const dom = new JSDOM(html);
-  const document = dom.window.document;
+  // const dom = new JSDOM(html);
+  // const document = dom.window.document;
 };
