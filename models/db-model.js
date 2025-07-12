@@ -20,10 +20,24 @@ class dbModel {
 
   async storeUniqueURL() {
     // await db.dbConnect();
-    await this.urlNewCheck(); //check if new
+    await this.urlNewCheck(); //check if new (throws error if not)
 
     const storeData = await this.storeAny();
     return storeData;
+  }
+
+  async urlNewCheck() {
+    const alreadyStored = await db.dbGet().collection(this.collection).findOne({ url: this.dataObject.url });
+
+    if (alreadyStored) {
+      const error = new Error("URL ALREADY STORED");
+      error.url = this.dataObject.url;
+      error.function = "Store Unique URL";
+      throw error;
+    }
+
+    //otherwise return trun
+    return true;
   }
 }
 
