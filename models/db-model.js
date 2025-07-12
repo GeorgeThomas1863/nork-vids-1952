@@ -39,6 +39,13 @@ class dbModel {
     //otherwise return trun
     return true;
   }
+
+  //GET STUFF
+  async getUniqueArray() {
+    const { keyToLookup, itemValue } = this.dataObject;
+    const dataArray = await db.dbGet().collection(this.collection).find({ [keyToLookup]: itemValue }).toArray(); //prettier-ignore
+    return dataArray;
+  }
 }
 
 export default dbModel;
