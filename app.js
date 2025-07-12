@@ -21,7 +21,7 @@ app.use(cors());
 app.use(routes);
 
 //PORT to listen
-app.listen(CONFIG.scrapePort);
+app.listen(CONFIG.vidPort);
 
 //CATCH CODE (for ref)
 // console.log(e.url + "; " + e.message + "; F BREAK: " + e.function);
