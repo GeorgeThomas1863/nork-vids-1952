@@ -20,8 +20,8 @@ export const getMainPageData = async () => {
 
   const mainPageObj = await parseMainPageHTML(mainPageHTML);
 
-  console.log("KCNA WATCH HTML");
-  console.log(mainPageHTML);
+  // console.log("KCNA WATCH HTML");
+  // console.log(mainPageHTML);
   // const htmlModel = new scrapeKCNAWatchs
 };
 
@@ -32,6 +32,12 @@ export const getMainPageData = async () => {
 export const parseMainPageHTML = async (html) => {
   // writeFileSync("mainPageHTML.html", html);
   // Parse the HTML using JSDOM
-  // const dom = new JSDOM(html);
-  // const document = dom.window.document;
+
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+
+  const articleArray = document.querySelectorAll("#archive_wrapper article");
+
+  console.log("ARTICLE ARRAY");
+  console.log(articleArray);
 };
