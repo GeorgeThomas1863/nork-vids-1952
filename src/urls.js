@@ -1,3 +1,4 @@
+import { JSDOM } from "jsdom";
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
 import { scrapeState } from "./state.js";
@@ -15,7 +16,15 @@ export const getMainPageData = async () => {
   const htmlModel = new KCNA({ url: kcnaWatchURL });
   const mainPageHTML = await htmlModel.getHTML();
 
+  const mainPageObj = await parseMainPageHTML(mainPageHTML);
+
   console.log("KCNA WATCH HTML");
   console.log(mainPageHTML);
   // const htmlModel = new scrapeKCNAWatch
+};
+
+export const parseMainPageHTML = async (html) => {
+  // Parse the HTML using JSDOM
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
 };
