@@ -13,8 +13,9 @@ export const getMainPageData = async () => {
   const { kcnaWatchURL } = CONFIG;
 
   const htmlModel = new KCNA({ url: kcnaWatchURL });
+  const mainPageHTML = await htmlModel.getHTML();
 
-  console.log("KCNA WATCH URL");
-  console.log(htmlModel);
+  console.log("KCNA WATCH HTML");
+  console.log(mainPageHTML);
   // const htmlModel = new scrapeKCNAWatch
 };
