@@ -9,6 +9,8 @@ import { scrapeState } from "./state.js";
 //get urls
 export const scrapeNewURLs = async () => {
   if (!scrapeState.scrapeActive) return null;
+  
+  console.log("SCRAPING NEW URLS");
   const mainPageData = await getMainPageData();
 };
 

@@ -5,12 +5,13 @@ import { scrapeState } from "../src/state.js";
 export const apiRoute = async (req, res) => {
   const inputParams = req.body;
 
-  console.log("INPUT PARAMS");
-  console.log(inputParams);
+  // console.log("INPUT PARAMS");
+  // console.log(inputParams);
 
   //updates the scrapeState
-  const data = await runAdminCommand(inputParams);
+  // const data = await runAdminCommand(inputParams);
+  await runAdminCommand(inputParams);
   //return to displayer
-  res.json(data);
+  res.json(scrapeState);
   //runs the command sent
 };
