@@ -43,7 +43,10 @@ export const parseMainPageHTML = async (html) => {
   for (let i = 0; i < articleArray.length; i++) {
     const article = articleArray[i];
     const broadcastHead = article.querySelector(".broadcast-head");
-    console.log(broadcastHead);
+    if (!broadcastHead || !broadcastHead.textContent) continue;
+    
+    const broadcastHeadText = broadcastHead.textContent.trim();
+    console.log(broadcastHeadText);
   }
 
   // console.log("ARTICLE ARRAY");
