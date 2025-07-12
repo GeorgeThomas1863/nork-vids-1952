@@ -46,6 +46,13 @@ class dbModel {
     const dataArray = await db.dbGet().collection(this.collection).find({ [keyToLookup]: itemValue }).toArray(); //prettier-ignore
     return dataArray;
   }
+
+  //UPDATES STUFF
+  async updateLog() {
+    const { inputObj, scrapeId } = this.dataObject;
+    const updateData = await db.dbGet().collection(this.collection).updateMany({ _id: scrapeId }, { $set: { ...inputObj } }); //prettier-ignore
+    return updateData;
+  }
 }
 
 export default dbModel;
