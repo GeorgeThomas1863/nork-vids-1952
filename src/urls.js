@@ -9,7 +9,7 @@ import { scrapeState } from "./state.js";
 //get urls
 export const scrapeNewURLs = async () => {
   if (!scrapeState.scrapeActive) return null;
-  
+
   console.log("SCRAPING NEW URLS");
   const mainPageData = await getMainPageData();
 };
@@ -20,6 +20,9 @@ export const getMainPageData = async () => {
 
   const htmlModel = new KCNA({ url: kcnaWatchURL });
   const mainPageHTML = await htmlModel.getHTML();
+
+  console.log("MAIN PAGE HTML");
+  console.log(mainPageHTML);
 
   const mainPageArray = await parseMainPageHTML(mainPageHTML);
 
