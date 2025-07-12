@@ -1,3 +1,6 @@
+//TO DO:
+// ON ADMIN COMMAND PARSE
+
 import CONFIG from "./config/config.js";
 import express from "express";
 import cors from "cors";

@@ -1,6 +1,8 @@
 import Log from "../models/log-model.js";
 import { scrapeNewURLs } from "./urls.js";
 
+//!!! HERE
+//BUILD ADMIN COMMAND
 export const runAdminCommand = async (inputParams) => {
   console.log("INPUT PARAMS");
   console.log(inputParams);
