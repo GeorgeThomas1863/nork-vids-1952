@@ -25,8 +25,12 @@ export const getMainPageData = async () => {
   // const htmlModel = new scrapeKCNAWatchs
 };
 
+//!!!!!!!!
+//HERE; EXTRACT 5PM and 8PM BROADCASTS AS SEPARATE ARRAYS IN mainPageObj
+//!!!!!!!
+
 export const parseMainPageHTML = async (html) => {
-  writeFileSync("mainPageHTML.html", html);
+  // writeFileSync("mainPageHTML.html", html);
   // Parse the HTML using JSDOM
   // const dom = new JSDOM(html);
   // const document = dom.window.document;
