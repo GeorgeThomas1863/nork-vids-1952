@@ -102,7 +102,7 @@ export const getDateText = async (article) => {
   const h4Element = article.querySelector("h4 a");
   const dateTextRaw = h4Element.textContent.trim();
 
-  const dateText = dateTextRaw.split(" ")[0];
+  const dateText = dateTextRaw.split(" ")[1];
   console.log("DATE TEXT");
   console.log(dateText);
 
