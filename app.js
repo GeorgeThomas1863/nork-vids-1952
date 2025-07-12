@@ -1,5 +1,7 @@
 //TO DO:
-// ON ADMIN COMMAND PARSE
+// ON GET PAGE CONTENT (HEADER DATA)
+// BUILD DOWNLOAD
+// BUILD UPLOAD
 
 import CONFIG from "./config/config.js";
 import express from "express";

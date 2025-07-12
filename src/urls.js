@@ -11,23 +11,24 @@ export const scrapeNewURLs = async () => {
   if (!scrapeState.scrapeActive) return null;
 
   console.log("SCRAPING NEW URLS");
-  const mainPageData = await getMainPageData();
+  const mainPageUrls = await getMainPageUrls();
+  console.log("MAIN PAGE URLS");
+  console.log(mainPageUrls);
+
+  const mainPageContent = await getMainPageContent();
 };
 
-export const getMainPageData = async () => {
+export const getMainPageUrls = async () => {
   if (!scrapeState.scrapeActive) return null;
   const { kctvArchive } = CONFIG;
 
   const htmlModel = new KCNA({ url: kctvArchive });
   const mainPageHTML = await htmlModel.getHTML();
 
-  console.log("MAIN PAGE HTML");
-  console.log(mainPageHTML);
+  // console.log("MAIN PAGE HTML");
+  // console.log(mainPageHTML);
 
   const mainPageArray = await parseMainPageHTML(mainPageHTML);
-
-  console.log("MAIN PAGE ARRAY");
-  console.log(mainPageArray);
 
   return mainPageArray;
 };
@@ -128,8 +129,20 @@ export const getDateObj = async (article) => {
   dateObj.setHours(scrapeHour);
   dateObj.setMinutes(scrapeMinute);
 
-  console.log("DATE TEXT");
-  console.log(dateText);
+  // console.log("DATE TEXT");
+  // console.log(dateText);
 
   return dateObj;
 };
+
+//------------------------------------
+
+//!!!!!
+//HERE
+//!!!!!
+
+export const getMainPageContent = async () =>{
+  //GET NEW DATA BASED ON MONGO NEW / UNIQUE
+
+  //LOOP THROUGH ADN GET CONTENT OF EACH VID (HEADER DATA)
+}
