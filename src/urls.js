@@ -16,9 +16,9 @@ export const scrapeNewURLs = async () => {
 
 export const getMainPageData = async () => {
   if (!scrapeState.scrapeActive) return null;
-  const { kcnaWatchURL } = CONFIG;
+  const { kctvArchive } = CONFIG;
 
-  const htmlModel = new KCNA({ url: kcnaWatchURL });
+  const htmlModel = new KCNA({ url: kctvArchive });
   const mainPageHTML = await htmlModel.getHTML();
 
   console.log("MAIN PAGE HTML");
