@@ -1,6 +1,7 @@
 {
   "name": "nork-vids-1952",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "app.js",
   "scripts": {
