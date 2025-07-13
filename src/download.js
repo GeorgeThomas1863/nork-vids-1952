@@ -75,6 +75,16 @@ export const parseHeaderData = async (inputData) => {
   console.log(inputData);
 
   const serverData = inputData.server;
+  const contentRange = inputData["content-range"];
+
+  const vidSizeRaw = contentRange.split("/")[1];
+
+  console.log("VID SIZE RAW");
+  console.log(vidSizeRaw);
+
+//   const vidStart = contentRange.indexOf("/") + 1;
+//   const vidEnd = scriptText.indexOf(".mp4", vidStart) + 4;
+//   const vidSizeRaw = contentRange.substring(vidStart, vidEnd).trim();
 };
 
 //------------------------
