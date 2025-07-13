@@ -177,7 +177,7 @@ export const buildPageContentArray = async (inputArray) => {
 
 export const buildPageObj = async (inputObj) => {
   if (!inputObj || !inputObj.url) return null;
-  const { url, title, type } = inputObj;
+  const { url } = inputObj;
 
   const htmlModel = new KCNA({ url: url });
   const pageHTML = await htmlModel.getHTML();
@@ -185,7 +185,7 @@ export const buildPageObj = async (inputObj) => {
   // console.log("PAGE HTML");
   // console.log(pageHTML);
 
-  const pageObj = await parsePageHTML(pageHTML, title, type);
+  const pageObj = await parsePageHTML(pageHTML);
 
   // const pageObj = {
   //   url,
@@ -198,7 +198,16 @@ export const buildPageObj = async (inputObj) => {
   return pageObj;
 };
 
-export const parsePageHTML = async (html, title, type) => {
-  // if (!html) return null;
-  writeFileSync(`${title}-${type}.html`, html);
+export const parsePageHTML = async (html) => {
+  if (!html) return null;
+  // writeFileSync(`${title}-${type}.html`, html);
+
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+
+  const scriptArray = document.querySelectorAll("script");
+
+  console.log("SCRIPT ARRAY");
+  console.log(scriptArray);
+  console.log(scriptArray.length);
 };
