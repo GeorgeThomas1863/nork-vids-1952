@@ -61,8 +61,8 @@ class Log {
       scrapeId: scrapeId,
     };
 
-    console.log("STORE OBJECT");
-    console.log(storeObj);
+    // console.log("STORE OBJECT");
+    // console.log(storeObj);
 
     //store it
     const storeModel = new dbModel(storeObj, CONFIG.log);
@@ -86,12 +86,12 @@ class Log {
     const returnObj = {};
     for (let i = 0; i < logArr.length; i++) {
       const logItem = logArr[i];
-      console.log("LOG ITEM");
-      console.log(logItem);
+      // console.log("LOG ITEM");
+      // console.log(logItem);
       const loopModel = new dbModel(lookupObj, CONFIG[logItem]);
       const dataArray = await loopModel.getUniqueArray();
-      console.log("LOOKUP RETURN");
-      console.log(dataArray?.length);
+      // console.log("LOOKUP RETURN");
+      // console.log(dataArray?.length);
       returnObj[logItem] = dataArray?.length || 0;
     }
 
