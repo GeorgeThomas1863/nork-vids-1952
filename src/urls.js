@@ -151,8 +151,8 @@ export const getMainPageContent = async () => {
 
   const pageContentArray = await buildPageContentArray(downloadArray);
 
-  // console.log("CONTENT ARRAY");
-  // console.log(pageContentArray);
+  console.log("CONTENT ARRAY");
+  console.log(pageContentArray);
 
   return pageContentArray;
 };
@@ -166,36 +166,38 @@ export const buildPageContentArray = async (inputArray) => {
     //stop if needed
     if (!scrapeState.scrapeActive) return pageObjArray;
     try {
-      const pageObj = await buildPageObj(inputArray[i]);
-      if (!pageObj) continue;
-      pageObjArray.push(pageObj);
+      const pageContentObj = await buildPageObj(inputArray[i]);
+      if (!pageContentObj) continue;
+      pageObjArray.push(pageContentObj);
     } catch (e) {
-      //  console.log(e.url + "; " + e.message + "; F BREAK: " + e.function);
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
     }
   }
+
+  return pageObjArray;
 };
 
 export const buildPageObj = async (inputObj) => {
   if (!inputObj || !inputObj.url) return null;
+  const { kcnaWatchContent } = CONFIG;
   const { url } = inputObj;
 
   const htmlModel = new KCNA({ url: url });
   const pageHTML = await htmlModel.getHTML();
 
-  // console.log("PAGE HTML");
-  // console.log(pageHTML);
-
   const pageObj = await parsePageHTML(pageHTML);
+  if (!pageObj) return null;
 
-  // const pageObj = {
-  //   url,
-  //   title,
-  // };
+  const contentObj = { ...inputObj, ...pageObj };
 
-  // console.log("INPUT OBJ");
-  // console.log(inputObj);
+  //store it
+  const storeModel = new dbModel(contentObj, kcnaWatchContent);
+  const storeData = await storeModel.storeUniqueURL();
+  console.log("STORE KCNA WATCH CONTENT");
+  console.log(storeData);
 
-  return pageObj;
+  return contentObj;
 };
 
 export const parsePageHTML = async (html) => {
@@ -217,12 +219,18 @@ export const parsePageHTML = async (html) => {
 
     //returns vidURL and thumbnail as obj
     const pageObj = await parseScriptText(scriptText);
-    console.log("PAGE OBJ");
-    console.log(pageObj);
+    // console.log("PAGE OBJ");s
+    // console.log(pageObj);
 
     //only 1 script with right info so immediately return
     return pageObj;
   }
+
+  //throw error if cant find script
+  const error = new Error("CANT FIND SCRIPT WITH RIGHT INFO");
+  error.function = "parsePageHTML";
+  error.content = html;
+  throw error;
 };
 
 export const parseScriptText = async (scriptText) => {
