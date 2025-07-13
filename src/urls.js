@@ -213,6 +213,7 @@ export const parsePageHTML = async (html) => {
     if (!scrapeState.scrapeActive) return null;
     const script = scriptArray[i];
     const scriptText = script.textContent;
+    if (!scriptText || !scriptText.includes(".mp4")) continue;
     console.log("SCRIPT TEXT");
     console.log(scriptText);
   }
