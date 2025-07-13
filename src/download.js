@@ -102,7 +102,7 @@ export const parseHeaderData = async (inputData) => {
   const contentRange = inputData["content-range"];
 
   const vidSizeBytes = +contentRange.split("/")[1];
-  const vidSizeMB = vidSizeBytes / (1024 * 1024).toFixed(2);
+  const vidSizeMB = Math.round(vidSizeBytes / (1024 * 1024), 2);
   const totalChunks = Math.ceil(vidSizeBytes / vidChunkSize);
 
   const etag = inputData.etag;
