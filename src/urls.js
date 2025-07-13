@@ -1,4 +1,4 @@
-// import { writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 
 import { JSDOM } from "jsdom";
 import CONFIG from "../config/config.js";
@@ -177,7 +177,7 @@ export const buildPageContentArray = async (inputArray) => {
 
 export const buildPageObj = async (inputObj) => {
   if (!inputObj || !inputObj.url) return null;
-  const { url } = inputObj;
+  const { url, title } = inputObj;
 
   const htmlModel = new KCNA({ url: url });
   const pageHTML = await htmlModel.getHTML();
@@ -185,7 +185,7 @@ export const buildPageObj = async (inputObj) => {
   console.log("PAGE HTML");
   console.log(pageHTML);
 
-  const pageObj = await parsePageHTML(pageHTML);
+  const pageObj = await parsePageHTML(pageHTML, title);
 
   // const pageObj = {
   //   url,
@@ -198,7 +198,7 @@ export const buildPageObj = async (inputObj) => {
   return pageObj;
 };
 
-export const parsePageHTML = async (html) => {
+export const parsePageHTML = async (html, title) => {
   // if (!html) return null;
-  writeFileSync("pageHTML.html", html);
-}
+  writeFileSync(`${title}.html`, html);
+};
