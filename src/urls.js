@@ -176,7 +176,21 @@ export const buildPageContentArray = async (inputArray) => {
 };
 
 export const buildPageObj = async (inputObj) => {
-  if (!inputObj) return null;
+  if (!inputObj || !inputObj.url) return null;
+  const { url } = inputObj;
+
+  const htmlModel = new KCNA({ url: url });
+  const pageHTML = await htmlModel.getHTML();
+
+  console.log("PAGE HTML");
+  console.log(pageHTML);
+
+  // const pageObj = await parsePageHTML(pageHTML);
+
+  // const pageObj = {
+  //   url,
+  //   title,
+  // };
 
   console.log("INPUT OBJ");
   console.log(inputObj);
