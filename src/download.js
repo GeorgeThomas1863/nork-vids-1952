@@ -19,8 +19,8 @@ export const getNewVidData = async () => {
 
   const newVidData = await parseVidDataArray(vidDataArray);
 
-  console.log("NEW VID DATA");
-  console.log(newVidData);
+  //   console.log("NEW VID DATA");
+  //   console.log(newVidData);
 
   return newVidData;
 };
@@ -99,13 +99,10 @@ export const parseHeaderData = async (inputData) => {
   if (!inputData) return null;
   const { vidChunkSize } = CONFIG;
 
-  //   console.log("INPUT DATA");
-  //   console.log(inputData);
-
   const contentRange = inputData["content-range"];
 
   const vidSizeBytes = +contentRange.split("/")[1];
-  const vidSizeMB = vidSizeBytes / (1024 * 1024);
+  const vidSizeMB = vidSizeBytes / (1024 * 1024).toFixed(2);
   const totalChunks = Math.ceil(vidSizeBytes / vidChunkSize);
 
   const etag = inputData.etag;
