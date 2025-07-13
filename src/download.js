@@ -126,4 +126,9 @@ export const parseHeaderData = async (inputData) => {
 
 //------------------------
 
-export const downloadNewVidArray = async () => {};
+export const downloadNewVidArray = async () => {
+    //GET SHIT TO DOWNLOAD
+    //DOWNLOAD EACH ITEM
+    //DOWNLOAD THUMBNAIL FIRST
+    //THEN DOWNLOAD VID
+};
