@@ -51,7 +51,7 @@ export const parseMainPageHTML = async (html) => {
       pageArray.push(articleObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
-      console.log(`\nARTICLE HTML: ${e.article} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.article} \n\n --------------------------------\n`);
       continue;
     }
   }
@@ -137,11 +137,18 @@ export const getDateObj = async (article) => {
 
 //------------------------------------
 
-//!!!!!
-//HERE
-//!!!!!
-
 export const getMainPageContent = async () => {
-  //GET NEW DATA BASED ON MONGO NEW / UNIQUE
-  //LOOP THROUGH ADN GET CONTENT OF EACH VID (HEADER DATA)
+  if (!scrapeState.scrapeActive) return null;
+  const { kcnaWatchList, kcnaWatchContent } = CONFIG;
+
+  const newItemParams = {
+    collection1: kcnaWatchList,
+    collection2: kcnaWatchContent,
+  };
+
+  const newItemModel = new dbModel(newItemParams, kcnaWatchList);
+  const downloadArray = await newItemModel.findNewURLs();
+
+  console.log("NEW ITEM DATA");
+  console.log(downloadArray);
 };

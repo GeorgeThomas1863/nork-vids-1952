@@ -26,6 +26,10 @@ class dbModel {
     return storeData;
   }
 
+  //--------------------------
+
+  //FIND STUFF
+
   async urlNewCheck() {
     const alreadyStored = await db.dbGet().collection(this.collection).findOne({ url: this.dataObject.url });
 
@@ -38,6 +42,17 @@ class dbModel {
 
     //otherwise return trun
     return true;
+  }
+
+  //finds unique items NOT in collection2
+  async findNewURLs() {
+    //collection1 - OLD THING (compare against); collection2 - NEW THING (process you are currently doing / handling)
+    const { collection1, collection2 } = this.dataObject;
+
+    //run check
+    const distinctURLs = await db.dbGet().collection(collection2).distinct("url");
+    const newURLsArray = await db.dbGet().collection(collection1).find({ ["url"]: { $nin: distinctURLs } }).toArray(); //prettier-ignore
+    return newURLsArray;
   }
 
   //GET STUFF
