@@ -182,8 +182,8 @@ export const buildPageObj = async (inputObj) => {
   const htmlModel = new KCNA({ url: url });
   const pageHTML = await htmlModel.getHTML();
 
-  console.log("PAGE HTML");
-  console.log(pageHTML);
+  // console.log("PAGE HTML");
+  // console.log(pageHTML);
 
   const pageObj = await parsePageHTML(pageHTML, title);
 
