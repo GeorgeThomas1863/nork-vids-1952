@@ -218,7 +218,7 @@ export const parsePageHTML = async (html) => {
     //extract vidURL (dumb text extraction)
     const vidURL = scriptText.substring(scriptText.indexOf("progressive: ") + 14, scriptText.indexOf(".mp4", scriptText.indexOf("progressive: ") + 14) + 4).trim();
 
-    const start = scriptText.indexOf("poster: ") + 8;
+    const start = scriptText.indexOf("poster: ") + 9;
     const end = scriptText.indexOf(".jpg", start) + 4;
     const thumbnail = scriptText.substring(start, end).trim();
 
