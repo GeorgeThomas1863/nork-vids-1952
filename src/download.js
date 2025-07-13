@@ -71,8 +71,11 @@ export const getVidData = async (inputObj) => {
 export const parseHeaderData = async (inputData) => {
   if (!inputData) return null;
 
-  console.log("HEADER DATA");
-  console.log(inputData);
+  const serverData = inputData.server;
+  //   const contentLength = inputData.contentLength;
+
+  console.log("SERVER DATA");
+  console.log(serverData);
 };
 
 //------------------------
