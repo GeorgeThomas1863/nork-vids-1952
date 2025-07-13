@@ -51,7 +51,7 @@ export const parseMainPageHTML = async (html) => {
       pageArray.push(articleObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
-      console.log(`ARTICLE HTML: ${e.article} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.article} \n\n --------------------------------`);
       continue;
     }
   }
