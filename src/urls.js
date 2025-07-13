@@ -214,8 +214,13 @@ export const parsePageHTML = async (html) => {
     const script = scriptArray[i];
     const scriptText = script.textContent;
     if (!scriptText || !scriptText.includes(".mp4")) continue;
-    console.log("SCRIPT TEXT");
-    console.log(scriptText);
+
+    //extract vidURL
+    const start = scriptText.indexOf("progressive: ") + 12;
+    const end = scriptText.indexOf(".mp4", start) + 4;
+    const vidURL = scriptText.substring(start, end).trim();
+    console.log("VID URL");
+    console.log(vidURL);
   }
 
   // console.log("SCRIPT ARRAY");
