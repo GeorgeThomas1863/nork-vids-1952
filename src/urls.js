@@ -149,6 +149,37 @@ export const getMainPageContent = async () => {
   const newItemModel = new dbModel(newItemParams, kcnaWatchList);
   const downloadArray = await newItemModel.findNewURLs();
 
-  console.log("NEW ITEM DATA");
-  console.log(downloadArray);
+  const pageContentArray = await buildPageContentArray(downloadArray);
+
+  // console.log("CONTENT ARRAY");
+  // console.log(pageContentArray);
+
+  return pageContentArray;
+};
+
+export const buildPageContentArray = async (inputArray) => {
+  if (!inputArray || !inputArray.length) return null;
+
+  //loop (dont check if stored since inputArray based on mongo compare earlier)
+  const pageObjArray = [];
+  for (let i = 0; i < inputArray.length; i++) {
+    //stop if needed
+    if (!scrapeState.scrapeActive) return pageObjArray;
+    try {
+      const pageObj = await buildPageObj(inputArray[i]);
+      if (!pageObj) continue;
+      pageObjArray.push(pageObj);
+    } catch (e) {
+      //  console.log(e.url + "; " + e.message + "; F BREAK: " + e.function);
+    }
+  }
+};
+
+export const buildPageObj = async (inputObj) => {
+  if (!inputObj) return null;
+
+  console.log("INPUT OBJ");
+  console.log(inputObj);
+
+  return inputObj;
 };
