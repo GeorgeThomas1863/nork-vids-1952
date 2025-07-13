@@ -1,5 +1,3 @@
-import { writeFileSync } from "fs";
-
 import { JSDOM } from "jsdom";
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
@@ -11,11 +9,8 @@ export const scrapeNewURLs = async () => {
   if (!scrapeState.scrapeActive) return null;
 
   console.log("SCRAPING NEW URLS");
-  const mainPageUrls = await getMainPageUrls();
-  console.log("MAIN PAGE URLS");
-  console.log(mainPageUrls);
-
-  const mainPageContent = await getMainPageContent();
+  await getMainPageUrls();
+  await getMainPageContent();
 };
 
 export const getMainPageUrls = async () => {
@@ -76,8 +71,8 @@ export const getArticleObj = async (article) => {
     type: broadcastHeadText,
   };
 
-  console.log("ARTICLE OBJ");
-  console.log(articleObj);
+  // console.log("ARTICLE OBJ");
+  // console.log(articleObj);
 
   //store it
   const storeModel = new dbModel(articleObj, kcnaWatchList);
@@ -151,8 +146,8 @@ export const getMainPageContent = async () => {
 
   const pageContentArray = await buildPageContentArray(downloadArray);
 
-  console.log("CONTENT ARRAY");
-  console.log(pageContentArray);
+  // console.log("CONTENT ARRAY");
+  // console.log(pageContentArray);
 
   return pageContentArray;
 };
@@ -202,7 +197,6 @@ export const buildPageObj = async (inputObj) => {
 
 export const parsePageHTML = async (html) => {
   if (!html) return null;
-  // writeFileSync(`${title}-${type}.html`, html);
 
   const dom = new JSDOM(html);
   const document = dom.window.document;

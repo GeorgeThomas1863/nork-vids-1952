@@ -55,7 +55,15 @@ class dbModel {
     return newURLsArray;
   }
 
+  //--------------------------
+
   //GET STUFF
+
+  async getAll() {
+    const arrayData = await db.dbGet().collection(this.collection).find().toArray();
+    return arrayData;
+  }
+
   async getUniqueArray() {
     const { keyToLookup, itemValue } = this.dataObject;
     const dataArray = await db.dbGet().collection(this.collection).find({ [keyToLookup]: itemValue }).toArray(); //prettier-ignore

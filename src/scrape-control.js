@@ -1,5 +1,6 @@
 import Log from "../models/log-model.js";
 import { scrapeNewURLs } from "./urls.js";
+import { downloadNewVids } from "./download.js";
 
 //!!! HERE
 //BUILD ADMIN COMMAND
@@ -30,6 +31,7 @@ export const scrapeKCNAWatch = async () => {
   await logStartModel.logStart();
 
   await scrapeNewURLs();
+  await downloadNewVids();
 
   const logStopModel = new Log();
   await logStopModel.logStop();
