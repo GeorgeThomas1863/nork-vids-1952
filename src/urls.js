@@ -192,8 +192,8 @@ export const buildPageObj = async (inputObj) => {
   //   title,
   // };
 
-  console.log("INPUT OBJ");
-  console.log(inputObj);
+  // console.log("INPUT OBJ");
+  // console.log(inputObj);
 
   return pageObj;
 };
@@ -205,9 +205,19 @@ export const parsePageHTML = async (html) => {
   const dom = new JSDOM(html);
   const document = dom.window.document;
 
+  //get array of scripts
   const scriptArray = document.querySelectorAll("script");
 
-  console.log("SCRIPT ARRAY");
-  console.log(scriptArray);
-  console.log(scriptArray.length);
+  //parse each script
+  for (let i = 0; i < scriptArray.length; i++) {
+    if (!scrapeState.scrapeActive) return null;
+    const script = scriptArray[i];
+    const scriptText = script.textContent;
+    console.log("SCRIPT TEXT");
+    console.log(scriptText);
+  }
+
+  // console.log("SCRIPT ARRAY");
+  // console.log(scriptArray);
+  // console.log(scriptArray.length);
 };
