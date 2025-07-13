@@ -215,21 +215,38 @@ export const parsePageHTML = async (html) => {
     const scriptText = script.textContent;
     if (!scriptText || !scriptText.includes(".mp4")) continue;
 
-    //extract vidURL (dumb text extraction)
-    const vidURL = scriptText.substring(scriptText.indexOf("progressive: ") + 14, scriptText.indexOf(".mp4", scriptText.indexOf("progressive: ") + 14) + 4).trim();
+    //returns vidURL and thumbnail as obj
+    const pageObj = await parseScriptText(scriptText);
+    console.log("PAGE OBJ");
+    console.log(pageObj);
 
-    const start = scriptText.indexOf("poster: ") + 9;
-    const end = scriptText.indexOf(".jpg", start) + 4;
-    const thumbnail = scriptText.substring(start, end).trim();
+    //only 1 script with right info so immediately return
+    return pageObj;
+  }
+};
 
-    console.log("VID URL");
-    console.log(vidURL);
+export const parseScriptText = async (scriptText) => {
+  if (!scriptText) return null;
+  const vidStart = scriptText.indexOf("progressive: ") + 14;
+  const vidEnd = scriptText.indexOf(".mp4", vidStart) + 4;
+  const vidURL = scriptText.substring(vidStart, vidEnd).trim();
 
-    console.log("THUMBNAIL");
-    console.log(thumbnail);
+  const thumbStart = scriptText.indexOf("poster: ") + 9;
+  const thumbEnd = scriptText.indexOf(".jpg", thumbStart) + 4;
+  const thumbnail = scriptText.substring(thumbStart, thumbEnd).trim();
+
+  //throw error if cant parse
+  if (!vidURL || !thumbnail) {
+    const error = new Error("CANT PARSE SCRIPT TEXT");
+    error.function = "parseScriptText";
+    error.content = scriptText;
+    throw error;
   }
 
-  // console.log("SCRIPT ARRAY");
-  // console.log(scriptArray);
-  // console.log(scriptArray.length);
+  const returnObj = {
+    vidURL: vidURL,
+    thumbnail: thumbnail,
+  };
+
+  return returnObj;
 };
