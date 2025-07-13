@@ -50,7 +50,7 @@ export const parseMainPageHTML = async (html) => {
       if (!articleObj) continue;
       pageArray.push(articleObj);
     } catch (e) {
-      console.log(`ERROR! ${e.message} \n --------------------------------\n`);
+      console.log(`ERROR! FUNCTION: ${e.function} | MSG: ${e.message} \n --------------------------------\n`);
       console.log(`ARTICLE HTML: ${e.article} \n --------------------------------\n`);
       continue;
     }
@@ -92,6 +92,7 @@ export const getBroadcastHead = async (article) => {
   const broadcastHead = article.querySelector(".broadcast-head");
   if (!broadcastHead || !broadcastHead.textContent) {
     const error = new Error("CANT EXTRACT BROADCAST HEAD FROM ARTICLE");
+    error.function = "getBroadcastHead";
     error.article = article;
     throw error;
   }
@@ -104,6 +105,7 @@ export const getLinkElement = async (article) => {
   const linkElement = article.querySelector("h4 a");
   if (!linkElement) {
     const error = new Error("CANT EXTRACT LINK FROM ARTICLE");
+    error.function = "getLinkElement";
     error.article = article;
     throw error;
   }
@@ -116,6 +118,7 @@ export const getDateObj = async (article) => {
   const h4Element = article.querySelector("h4 a");
   if (!h4Element || !h4Element.textContent) {
     const error = new Error("CANT EXTRACT DATE FROM ARTICLE");
+    error.function = "getDateObj";
     error.article = article;
     throw error;
   }
@@ -129,9 +132,6 @@ export const getDateObj = async (article) => {
   dateObj.setHours(scrapeHour);
   dateObj.setMinutes(scrapeMinute);
 
-  // console.log("DATE TEXT");
-  // console.log(dateText);
-
   return dateObj;
 };
 
@@ -141,8 +141,7 @@ export const getDateObj = async (article) => {
 //HERE
 //!!!!!
 
-export const getMainPageContent = async () =>{
+export const getMainPageContent = async () => {
   //GET NEW DATA BASED ON MONGO NEW / UNIQUE
-
   //LOOP THROUGH ADN GET CONTENT OF EACH VID (HEADER DATA)
-}
+};
