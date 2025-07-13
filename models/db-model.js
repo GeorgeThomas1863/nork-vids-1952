@@ -76,6 +76,13 @@ class dbModel {
     const updateData = await db.dbGet().collection(this.collection).updateMany({ _id: scrapeId }, { $set: { ...inputObj } }); //prettier-ignore
     return updateData;
   }
+
+  //updates data (to add vidData)
+  async updateObjInsert() {
+    const { keyToLookup, itemValue, insertKey, updateObj } = this.dataObject;
+    const updateData = await db.dbGet().collection(this.collection).updateOne({ [keyToLookup]: itemValue }, { $set: { [insertKey]: updateObj } }); //prettier-ignore
+    return updateData;
+  }
 }
 
 export default dbModel;

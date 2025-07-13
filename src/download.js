@@ -18,6 +18,11 @@ export const getNewVidData = async () => {
   if (!vidDataArray || !vidDataArray.length) return null;
 
   const newVidData = await parseVidDataArray(vidDataArray);
+
+  console.log("NEW VID DATA");
+  console.log(newVidData);
+
+  return newVidData;
 };
 
 export const parseVidDataArray = async (inputArray) => {
@@ -48,11 +53,13 @@ export const parseVidDataArray = async (inputArray) => {
 
 export const getVidData = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL) return null;
+  const { kcnaWatchContent } = CONFIG;
+  const { vidURL } = inputObj;
 
   //   console.log("GET VID DATA");
   //   console.log(inputObj);
 
-  const headerModel = new KCNA({ url: inputObj.vidURL });
+  const headerModel = new KCNA({ url: vidURL });
   const headerData = await headerModel.getMediaHeaders();
 
   //throw error if cant get headers
@@ -65,7 +72,27 @@ export const getVidData = async (inputObj) => {
 
   const vidData = await parseHeaderData(headerData);
 
-  return null;
+  if (!vidData) {
+    const error = new Error("CANT PARSE HEADER DATA");
+    error.function = "getVidData";
+    error.content = headerData;
+    throw error;
+  }
+
+  const updateParams = {
+    keyToLookup: "vidURL",
+    itemValue: vidURL,
+    insertKey: "vidData",
+    updateObj: vidData,
+  };
+
+  const updateModel = new dbModel(updateParams, kcnaWatchContent);
+  const updateData = await updateModel.updateObjInsert();
+
+  console.log("UPDATE DATA");
+  console.log(updateData);
+
+  return vidData;
 };
 
 export const parseHeaderData = async (inputData) => {
