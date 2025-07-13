@@ -70,21 +70,34 @@ export const getVidData = async (inputObj) => {
 
 export const parseHeaderData = async (inputData) => {
   if (!inputData) return null;
+  const { vidChunkSize } = CONFIG;
 
-  console.log("INPUT DATA");
-  console.log(inputData);
+  //   console.log("INPUT DATA");
+  //   console.log(inputData);
 
-  const serverData = inputData.server;
   const contentRange = inputData["content-range"];
 
-  const vidSizeRaw = contentRange.split("/")[1];
+  const vidSizeBytes = +contentRange.split("/")[1];
+  const vidSizeMB = vidSizeBytes / (1024 * 1024);
+  const totalChunks = Math.ceil(vidSizeBytes / vidChunkSize);
 
-  console.log("VID SIZE RAW");
-  console.log(vidSizeRaw);
+  const etag = inputData.etag;
+  const serverData = inputData.server;
+  const vidEditDate = new Date(inputData["last-modified"]);
 
-//   const vidStart = contentRange.indexOf("/") + 1;
-//   const vidEnd = scriptText.indexOf(".mp4", vidStart) + 4;
-//   const vidSizeRaw = contentRange.substring(vidStart, vidEnd).trim();
+  const headerObj = {
+    vidSizeBytes: vidSizeBytes,
+    vidSizeMB: vidSizeMB,
+    totalChunks: totalChunks,
+    etag: etag,
+    serverData: serverData,
+    vidEditDate: vidEditDate,
+  };
+
+  console.log("HEADER OBJ");
+  console.log(headerObj);
+
+  return headerObj;
 };
 
 //------------------------
