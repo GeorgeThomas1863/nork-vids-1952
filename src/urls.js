@@ -216,7 +216,7 @@ export const parsePageHTML = async (html) => {
     if (!scriptText || !scriptText.includes(".mp4")) continue;
 
     //extract vidURL
-    const start = scriptText.indexOf("progressive: ") + 13;
+    const start = scriptText.indexOf("progressive: ") + 14;
     const end = scriptText.indexOf(".mp4", start) + 4;
     const vidURL = scriptText.substring(start, end).trim();
     console.log("VID URL");
