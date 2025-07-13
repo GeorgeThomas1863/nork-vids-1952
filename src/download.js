@@ -1,4 +1,5 @@
 import CONFIG from "../config/config.js";
+import KCNA from "../models/kcna-model.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
 
@@ -41,10 +42,16 @@ export const parseVidDataArray = async (inputArray) => {
 };
 
 export const getVidData = async (inputObj) => {
-  if (!inputObj || !inputObj.url) return null;
+  if (!inputObj || !inputObj.vidURL) return null;
 
   console.log("GET VID DATA");
   console.log(inputObj);
+
+  const headerModel = new KCNA({ url: inputObj.vidURL });
+  const headerData = await headerModel.getMediaHeaders();
+
+  console.log("HEADER DATA");
+  console.log(headerData);
 
   return null;
 };
