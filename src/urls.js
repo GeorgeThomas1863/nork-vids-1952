@@ -185,7 +185,7 @@ export const buildPageObj = async (inputObj) => {
   console.log("PAGE HTML");
   console.log(pageHTML);
 
-  // const pageObj = await parsePageHTML(pageHTML);
+  const pageObj = await parsePageHTML(pageHTML);
 
   // const pageObj = {
   //   url,
@@ -195,5 +195,10 @@ export const buildPageObj = async (inputObj) => {
   console.log("INPUT OBJ");
   console.log(inputObj);
 
-  return inputObj;
+  return pageObj;
 };
+
+export const parsePageHTML = async (html) => {
+  // if (!html) return null;
+  writeFileSync("pageHTML.html", html);
+}
