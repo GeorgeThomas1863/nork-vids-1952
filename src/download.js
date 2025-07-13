@@ -27,15 +27,20 @@ export const parseVidDataArray = async (inputArray) => {
   const vidDataArray = [];
   for (let i = 0; i < inputArray.length; i++) {
     if (!scrapeState.scrapeActive) return vidDataArray;
-    const pageObj = inputArray[i];
+    try {
+      const pageObj = inputArray[i];
 
-    //MAKE MORE ROBUST
-    if (pageObj && pageObj.vidData) continue;
-    //otherwise get vid data
-    const vidData = await getVidData(pageObj);
-    if (!vidData) continue;
+      //MAKE MORE ROBUST
+      if (pageObj && pageObj.vidData) continue;
+      //otherwise get vid data
+      const vidData = await getVidData(pageObj);
+      if (!vidData) continue;
 
-    vidDataArray.push(vidData);
+      vidDataArray.push(vidData);
+    } catch (e) {
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
+    }
   }
 
   return vidDataArray;
@@ -44,16 +49,30 @@ export const parseVidDataArray = async (inputArray) => {
 export const getVidData = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL) return null;
 
-  console.log("GET VID DATA");
-  console.log(inputObj);
+  //   console.log("GET VID DATA");
+  //   console.log(inputObj);
 
   const headerModel = new KCNA({ url: inputObj.vidURL });
   const headerData = await headerModel.getMediaHeaders();
 
-  console.log("HEADER DATA");
-  console.log(headerData);
+  //throw error if cant get headers
+  if (!headerData) {
+    const error = new Error("HEADER GET ATTEMPTS FAILED");
+    error.function = "getVidData";
+    error.content = inputObj;
+    throw error;
+  }
+
+  const vidData = await parseHeaderData(headerData);
 
   return null;
+};
+
+export const parseHeaderData = async (inputData) => {
+  if (!inputData) return null;
+
+  console.log("HEADER DATA");
+  console.log(inputData);
 };
 
 //------------------------
