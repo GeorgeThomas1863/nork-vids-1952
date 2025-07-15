@@ -123,6 +123,11 @@ class KCNA {
 
   async downloadPicReq() {
     const { url, savePath, picId } = this.dataObject;
+
+    //obj for tracking
+    const picObj = { ...this.dataObject };
+    picObj.downloadedSize = 0;
+
     try {
       const res = await axios({
         method: "get",
@@ -155,7 +160,9 @@ class KCNA {
       });
 
       console.log(`DOWNLOAD COMPLETE: ${picId}.jpg | FINAL SIZE: ${Math.round(downloadedSize / 1024)}KB`);
-      return downloadedSize;
+
+      picObj.downloadedSize = downloadedSize;
+      return picObj;
     } catch (e) {
       console.log(url + "; " + e.message + "; F BREAK: " + e.function);
       return null;

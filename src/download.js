@@ -147,30 +147,33 @@ export const downloadNewVidArray = async () => {
       const storeObj = { ...downloadObj };
 
       //download thumbnail
-      const thumbnailData = await downloadThumbnailFS(downloadObj);
-      if (thumbnailData) {
-        storeObj.thumbnailDownloaded = true;
-        storeObj.thumbnailDownloadedSize = thumbnailData;
-      }
+      const thumbnailObj = await downloadThumbnailFS(downloadObj);
+      // if (thumbnailData) {
+      //   storeObj.thumbnailDownloaded = true;
+      //   storeObj.thumbnailDownloadedSize = thumbnailData;
+      // }
 
       //download vid
-      const vidReturnData = await downloadVidFS(downloadObj);
+      const vidReturnObj = await downloadVidFS(downloadObj);
 
       console.log("STORE OBJ");
       console.log(storeObj);
       console.log("--------------------------------");
+      console.log("THUMBNAIL DATA");
+      console.log(thumbnailObj);
+      console.log("--------------------------------");
       console.log("VID RETURN DATA");
-      console.log(vidReturnData);
+      console.log(vidReturnObj);
 
       //if both fail dont save
-      if (!thumbnailData && !vidReturnData) continue;
+      if (!thumbnailObj && !vidReturnObj) continue;
 
       // console.log("VID RETURN DATA!!!");
       // console.log(vidReturnData);
 
       downloadDataArray.push({
-        thumbnailData: thumbnailData,
-        vidReturnData: vidReturnData,
+        thumbnailData: thumbnailObj,
+        vidReturnData: vidReturnObj,
       });
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
