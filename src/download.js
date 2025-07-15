@@ -6,6 +6,9 @@ import { scrapeState } from "./state.js";
 export const downloadNewVids = async () => {
   await getNewVidData();
   await downloadNewVidArray();
+
+  console.log("FINISHED DOWNLOADING NEW VIDS");
+  return true;
 };
 
 export const getNewVidData = async () => {
@@ -170,6 +173,8 @@ export const downloadNewVidArray = async () => {
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
     }
   }
+
+  return downloadDataArray;
 };
 
 export const downloadVidFS = async (inputObj) => {
