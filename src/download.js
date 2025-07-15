@@ -148,10 +148,6 @@ export const downloadNewVidArray = async () => {
 
       //download thumbnail
       const thumbnailObj = await downloadThumbnailFS(downloadObj);
-      // if (thumbnailData) {
-      //   storeObj.thumbnailDownloaded = true;
-      //   storeObj.thumbnailDownloadedSize = thumbnailData;
-      // }
 
       //download vid
       const vidReturnObj = await downloadVidFS(downloadObj);
@@ -207,12 +203,17 @@ export const downloadThumbnailFS = async (inputObj) => {
   // console.log(params);
 
   const picModel = new KCNA(params);
-  const picData = await picModel.downloadPicReq();
+  const picObj = await picModel.downloadPicReq();
+  if (!picObj) return null;
 
-  // console.log("PIC DATA");
-  // console.log(picData);
+  const returnObj = {
+    thumbnailDownloaded: true,
+    thumbnailPath: picObj.savePath,
+    thumbnailId: picObj.picId,
+    thumbnailDownloadedSize: picObj.downloadedSize,
+  };
 
-  return picData;
+  return returnObj;
 };
 
 export const downloadVidFS = async (inputObj) => {
@@ -236,7 +237,16 @@ export const downloadVidFS = async (inputObj) => {
   };
 
   const vidModel = new KCNA(params);
-  const vidReturnData = await vidModel.downloadVidMultiThread();
+  const vidObj = await vidModel.downloadVidMultiThread();
+  if (!vidObj) return null;
 
-  return vidReturnData;
+  //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
+  const returnObj = {
+    vidDownloaded: true,
+    vidPath: vidObj.savePath,
+    vidId: vidObj.vidId,
+    vidDownloadedSize: vidObj.downloadedSize,
+  };
+
+  return returnObj;
 };
