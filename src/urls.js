@@ -141,7 +141,7 @@ export const getMainPageContent = async () => {
     collection2: kcnaWatchContent,
   };
 
-  const newItemModel = new dbModel(newItemParams, kcnaWatchList);
+  const newItemModel = new dbModel(newItemParams, "");
   const downloadArray = await newItemModel.findNewURLs();
 
   const pageContentArray = await buildPageContentArray(downloadArray);

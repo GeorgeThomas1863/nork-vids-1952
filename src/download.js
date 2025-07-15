@@ -127,8 +127,17 @@ export const parseHeaderData = async (inputData) => {
 //------------------------
 
 export const downloadNewVidArray = async () => {
-    //GET SHIT TO DOWNLOAD
-    //DOWNLOAD EACH ITEM
-    //DOWNLOAD THUMBNAIL FIRST
-    //THEN DOWNLOAD VID
+  if (!scrapeState.scrapeActive) return null;
+  const { kcnaWatchDownloaded, kcnaWatchContent } = CONFIG;
+
+  const newItemParams = {
+    collection1: kcnaWatchContent,
+    collection2: kcnaWatchDownloaded,
+  };
+
+  const newItemModel = new dbModel(newItemParams, "");
+  const downloadArray = await newItemModel.findNewURLs();
+
+  console.log("DOWNLOAD ARRAY");
+  console.log(downloadArray);
 };
