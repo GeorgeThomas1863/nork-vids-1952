@@ -143,34 +143,30 @@ export const downloadNewVidArray = async () => {
       //skip full broadcasts
       if (type === "Full Broadcast") continue;
 
-      //obj for tracking
-      const storeObj = { ...downloadObj };
-
       //download thumbnail
       const thumbnailObj = await downloadThumbnailFS(downloadObj);
 
       //download vid
       const vidReturnObj = await downloadVidFS(downloadObj);
 
-      console.log("STORE OBJ");
-      console.log(storeObj);
-      console.log("--------------------------------");
-      console.log("THUMBNAIL DATA");
-      console.log(thumbnailObj);
-      console.log("--------------------------------");
-      console.log("VID RETURN DATA");
-      console.log(vidReturnObj);
-
       //if both fail dont save
       if (!thumbnailObj && !vidReturnObj) continue;
+
+      const storeObj = { ...downloadObj, ...thumbnailObj, ...vidReturnObj };
+
+      console.log("STORE OBJ");
+      console.log(storeObj);
+      // console.log("--------------------------------");
+      // console.log("THUMBNAIL DATA");
+      // console.log(thumbnailObj);
+      // console.log("--------------------------------");
+      // console.log("VID RETURN DATA");
+      // console.log(vidReturnObj);
 
       // console.log("VID RETURN DATA!!!");
       // console.log(vidReturnData);
 
-      downloadDataArray.push({
-        thumbnailData: thumbnailObj,
-        vidReturnData: vidReturnObj,
-      });
+      downloadDataArray.push(storeObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
@@ -208,7 +204,7 @@ export const downloadThumbnailFS = async (inputObj) => {
 
   const returnObj = {
     thumbnailDownloaded: true,
-    thumbnailPath: picObj.savePath,
+    thumbnailSavePath: picObj.savePath,
     thumbnailId: picObj.picId,
     thumbnailDownloadedSize: picObj.downloadedSize,
   };
@@ -243,9 +239,8 @@ export const downloadVidFS = async (inputObj) => {
   //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
   const returnObj = {
     vidDownloaded: true,
-    vidPath: vidObj.savePath,
-    vidId: vidObj.vidId,
-    vidDownloadedSize: vidObj.downloadedSize,
+    vidSavePath: vidObj.savePath,
+    chunksProcessed: vidObj.chunksProcessed,
   };
 
   return returnObj;
