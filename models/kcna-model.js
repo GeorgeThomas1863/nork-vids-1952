@@ -1,4 +1,6 @@
 import axios from "axios";
+import fs from "fs";
+import { DLHelper } from "./dl-helper.js";
 import { randomDelay } from "../src/util.js";
 
 class KCNA {
@@ -113,6 +115,143 @@ class KCNA {
     } catch (e) {
       console.log("TRIED FULL REQ, STILL FUCKED");
       // console.log(e);
+      return null;
+    }
+  }
+
+  //-------------------------
+
+  async downloadPicReq() {
+    const { url, savePath, picId } = this.dataObject;
+    try {
+      const res = await axios({
+        method: "get",
+        url: url,
+        timeout: 120000, //2 minutes
+        responseType: "stream",
+      });
+      if (!res || !res.data) {
+        const error = new Error("FETCH FUCKED");
+        error.url = url;
+        error.fucntion = "GET PIC REQ AXIOS";
+        throw error;
+      }
+
+      const writer = fs.createWriteStream(savePath);
+      const stream = res.data.pipe(writer);
+      let downloadedSize = 0;
+
+      res.data.on("data", (chunk) => {
+        // Log progress in KB every 100KB
+        downloadedSize += chunk.length;
+        if (downloadedSize % 102400 < chunk.length) {
+          const downloadedKB = Math.floor(downloadedSize / 1024);
+          console.log(`Downloaded: ${downloadedKB}KB`);
+        }
+      });
+      await new Promise((resolve, reject) => {
+        stream.on("finish", resolve);
+        stream.on("error", reject);
+      });
+
+      console.log(`DOWNLOAD COMPLETE: ${picId}.jpg | FINAL SIZE: ${Math.round(downloadedSize / 1024)}KB`);
+      return { downloadedSize: downloadedSize };
+    } catch (e) {
+      console.log(url + "; " + e.message + "; F BREAK: " + e.function);
+      return null;
+    }
+  }
+
+  //complex multi thread download
+  async downloadVidMultiThread() {
+    //get obj data
+    const { inputObj } = this.dataObject;
+    const { totalChunks } = inputObj;
+    const vidObj = { ...inputObj };
+
+    try {
+      //find shit already downloaded
+      const completedModel = new DLHelper(vidObj);
+      const completedChunkArray = await completedModel.getCompletedVidChunks();
+      vidObj.completedChunkArray = completedChunkArray;
+
+      if (completedChunkArray.length > 0) {
+        console.log("Resuming Chunk " + completedChunkArray.length + " of " + totalChunks + " total chunks");
+      }
+
+      //create vid download queue
+      const pendingModel = new DLHelper(vidObj);
+      const pendingChunkArray = await pendingModel.createVidQueue();
+      vidObj.pendingChunkArray = pendingChunkArray;
+
+      const processModel = new DLHelper(vidObj);
+      const chunksProcessed = await processModel.processVidQueue();
+      vidObj.chunksProcessed = chunksProcessed;
+
+      const mergeModel = new DLHelper(vidObj);
+      await mergeModel.mergeChunks();
+
+      //dont need all the shit in vidObj, so doing inputObj here
+      const returnObj = { ...inputObj };
+      returnObj.chunksProcessed = chunksProcessed;
+
+      return returnObj;
+    } catch (e) {
+      console.log(e.url + "; " + e.message + "; F BREAK: " + e.function);
+      //return null on failure
+      return null;
+    }
+  }
+
+  //VID RETRY
+  async downloadVidSimple() {
+    const { url, savePath, vidId } = this.dataObject;
+
+    try {
+      // await randomDelay(1);
+      const res = await axios({
+        method: "get",
+        url: url,
+        timeout: 15 * 1000, //15 seconds
+        responseType: "stream",
+      });
+
+      if (!res || !res.data) {
+        const error = new Error("FETCH FUCKED");
+        error.url = url;
+        error.fucntion = "VID REQ BACKUP";
+        throw error;
+      }
+
+      const writer = fs.createWriteStream(savePath);
+      const stream = res.data.pipe(writer);
+      const totalSize = parseInt(res.headers["content-length"], 10);
+      const mbSize = +(totalSize / 1048576).toFixed(2);
+      let downloadedSize = 0;
+
+      const consoleStr = "BACKUP VID DOWNLOAD: " + vidId + ".mp4 | SIZE: " + mbSize + "MB";
+      console.log(consoleStr);
+
+      //download shit
+      res.data.on("data", (chunk) => {
+        downloadedSize += chunk.length;
+        if (downloadedSize >= totalSize) {
+        }
+      });
+
+      await new Promise((resolve, reject) => {
+        stream.on("finish", resolve);
+        stream.on("error", reject);
+      });
+
+      const returnObj = {
+        downloadedSize: downloadedSize,
+        totalSize: totalSize,
+      };
+
+      return returnObj;
+    } catch (e) {
+      console.log(url + "; " + e.message + "; F BREAK: " + e.function);
       return null;
     }
   }

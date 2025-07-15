@@ -137,7 +137,82 @@ export const downloadNewVidArray = async () => {
 
   const newItemModel = new dbModel(newItemParams, "");
   const downloadArray = await newItemModel.findNewURLs();
+  if (!downloadArray || !downloadArray.length) return null;
+
+  const downloadDataArray = [];
+  for (let i = 0; i < downloadArray.length; i++) {
+    if (!scrapeState.scrapeActive) return null;
+    try {
+      const thumbnailData = await downloadThumbnailFS(downloadArray[i]);
+      const vidReturnData = await downloadVidFS(downloadArray[i]);
+      if (!thumbnailData || !vidReturnData) continue;
+
+      downloadDataArray.push({
+        thumbnailData: thumbnailData,
+        vidReturnData: vidReturnData,
+      });
+    } catch (e) {
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
+    }
+  }
 
   console.log("DOWNLOAD ARRAY");
   console.log(downloadArray);
+};
+
+export const downloadThumbnailFS = async (inputObj) => {
+  if (!inputObj || !inputObj.thumbnail) return null;
+  const { thumbnail } = inputObj;
+  const { watchPath } = CONFIG;
+
+  const nameStart = thumbnail.lastIndexOf("/");
+  const nameEnd = thumbnail.lastIndexOf(".");
+  const picName = thumbnail.substring(nameStart + 1, nameEnd);
+
+  const savePath = `${watchPath}/${picName}.jpg`;
+
+  //build params
+  const params = {
+    url: thumbnail,
+    savePath: savePath,
+    picId: picName,
+  };
+
+  const picModel = new KCNA(params);
+  const picData = await picModel.downloadPicReq();
+
+  console.log("PIC DATA");
+  console.log(picData);
+
+  return picData;
+};
+
+export const downloadVidFS = async (inputObj) => {
+  if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
+  const { tempPath, watchPath } = CONFIG;
+  const { vidURL, vidData } = inputObj;
+  const { vidSizeBytes, totalChunks } = vidData;
+
+  const nameStart = vidURL.lastIndexOf("/");
+  const nameEnd = vidURL.lastIndexOf(".");
+  const vidName = vidURL.substring(nameStart + 1, nameEnd);
+
+  const savePath = `${watchPath}/${vidName}.mp4`;
+
+  const params = {
+    url: vidURL,
+    savePath: savePath,
+    vidTempPath: tempPath,
+    totalChunks: totalChunks,
+    vidSizeBytes: vidSizeBytes,
+  };
+
+  const vidModel = new KCNA(params);
+  const vidReturnData = await vidModel.downloadVidMultiThread();
+
+  console.log("VID RETURN DATA");
+  console.log(vidReturnData);
+
+  return vidReturnData;
 };
