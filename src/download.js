@@ -146,9 +146,15 @@ export const downloadNewVidArray = async () => {
       //download thumbnail
       const thumbnailData = await downloadThumbnailFS(downloadObj);
 
+      console.log("THUMBNAIL DATA!!!");
+      console.log(thumbnailData);
+
       //download vid
       const vidReturnData = await downloadVidFS(downloadObj);
       if (!thumbnailData || !vidReturnData) continue;
+
+      console.log("VID RETURN DATA!!!");
+      console.log(vidReturnData);
 
       downloadDataArray.push({
         thumbnailData: thumbnailData,
@@ -160,8 +166,8 @@ export const downloadNewVidArray = async () => {
     }
   }
 
-  console.log("DOWNLOAD ARRAY");
-  console.log(downloadArray);
+  // console.log("DOWNLOAD ARRAY");
+  // console.log(downloadArray);
 };
 
 export const downloadThumbnailFS = async (inputObj) => {
@@ -214,14 +220,8 @@ export const downloadVidFS = async (inputObj) => {
     vidSizeBytes: vidSizeBytes,
   };
 
-  // console.log("VID PARAMS");
-  // console.log(params);
-
   const vidModel = new KCNA(params);
   const vidReturnData = await vidModel.downloadVidMultiThread();
-
-  console.log("VID RETURN DATA");
-  console.log(vidReturnData);
 
   return vidReturnData;
 };

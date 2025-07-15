@@ -168,9 +168,6 @@ class KCNA {
     const { totalChunks } = this.dataObject;
     const vidObj = { ...this.dataObject };
 
-    console.log("VID OBJ");
-    console.log(vidObj);
-
     try {
       //find shit already downloaded
       const completedModel = new DLHelper(vidObj);
