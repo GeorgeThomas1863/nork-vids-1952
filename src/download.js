@@ -140,31 +140,29 @@ export const downloadNewVidArray = async () => {
       const downloadObj = downloadArray[i];
       const { type } = downloadObj;
 
+      //double check not already downloaded (shouldnt happen)
+      const checkModel = new dbModel(downloadObj, kcnaWatchDownloaded);
+      const checkData = await checkModel.urlNewCheck();
+      if (!checkData) continue;
+
       //skip full broadcasts
       if (type === "Full Broadcast") continue;
 
-      //download thumbnail
+      //download thumbnail; then download vid
       const thumbnailObj = await downloadThumbnailFS(downloadObj);
-
-      //download vid
       const vidReturnObj = await downloadVidFS(downloadObj);
 
-      //if both fail dont save
-      if (!thumbnailObj && !vidReturnObj) continue;
+      //if either fail dont save
+      if (!thumbnailObj || !vidReturnObj) continue;
 
       const storeObj = { ...downloadObj, ...thumbnailObj, ...vidReturnObj };
 
-      console.log("STORE OBJ");
-      console.log(storeObj);
-      // console.log("--------------------------------");
-      // console.log("THUMBNAIL DATA");
-      // console.log(thumbnailObj);
-      // console.log("--------------------------------");
-      // console.log("VID RETURN DATA");
-      // console.log(vidReturnObj);
+      //store it
+      const storeModel = new dbModel(storeObj, kcnaWatchDownloaded);
+      const storeData = await storeModel.storeUniqueURL();
 
-      // console.log("VID RETURN DATA!!!");
-      // console.log(vidReturnData);
+      console.log("DOWNLOAD STORE DATA");
+      console.log(storeData);
 
       downloadDataArray.push(storeObj);
     } catch (e) {
@@ -172,9 +170,40 @@ export const downloadNewVidArray = async () => {
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
     }
   }
+};
 
-  // console.log("DOWNLOAD ARRAY");
-  // console.log(downloadArray);
+export const downloadVidFS = async (inputObj) => {
+  if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
+  const { tempPath, watchPath } = CONFIG;
+  const { vidURL, vidData } = inputObj;
+  const { vidSizeBytes, totalChunks } = vidData;
+
+  const nameStart = vidURL.lastIndexOf("/");
+  const nameEnd = vidURL.lastIndexOf(".");
+  const vidName = vidURL.substring(nameStart + 1, nameEnd);
+
+  const savePath = `${watchPath}${vidName}.mp4`;
+
+  const params = {
+    url: vidURL,
+    savePath: savePath,
+    vidTempPath: tempPath,
+    totalChunks: totalChunks,
+    vidSizeBytes: vidSizeBytes,
+  };
+
+  const vidModel = new KCNA(params);
+  const vidObj = await vidModel.downloadVidMultiThread();
+  if (!vidObj) return null;
+
+  //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
+  const returnObj = {
+    vidDownloaded: true,
+    vidSavePath: vidObj.savePath,
+    chunksProcessed: vidObj.chunksProcessed,
+  };
+
+  return returnObj;
 };
 
 export const downloadThumbnailFS = async (inputObj) => {
@@ -207,40 +236,6 @@ export const downloadThumbnailFS = async (inputObj) => {
     thumbnailSavePath: picObj.savePath,
     thumbnailId: picObj.picId,
     thumbnailDownloadedSize: picObj.downloadedSize,
-  };
-
-  return returnObj;
-};
-
-export const downloadVidFS = async (inputObj) => {
-  if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
-  const { tempPath, watchPath } = CONFIG;
-  const { vidURL, vidData } = inputObj;
-  const { vidSizeBytes, totalChunks } = vidData;
-
-  const nameStart = vidURL.lastIndexOf("/");
-  const nameEnd = vidURL.lastIndexOf(".");
-  const vidName = vidURL.substring(nameStart + 1, nameEnd);
-
-  const savePath = `${watchPath}${vidName}.mp4`;
-
-  const params = {
-    url: vidURL,
-    savePath: savePath,
-    vidTempPath: tempPath,
-    totalChunks: totalChunks,
-    vidSizeBytes: vidSizeBytes,
-  };
-
-  const vidModel = new KCNA(params);
-  const vidObj = await vidModel.downloadVidMultiThread();
-  if (!vidObj) return null;
-
-  //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
-  const returnObj = {
-    vidDownloaded: true,
-    vidSavePath: vidObj.savePath,
-    chunksProcessed: vidObj.chunksProcessed,
   };
 
   return returnObj;
