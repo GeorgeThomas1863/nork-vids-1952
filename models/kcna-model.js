@@ -165,9 +165,11 @@ class KCNA {
   //complex multi thread download
   async downloadVidMultiThread() {
     //get obj data
-    const { inputObj } = this.dataObject;
-    const { totalChunks } = inputObj;
-    const vidObj = { ...inputObj };
+    const { totalChunks } = this.dataObject;
+    const vidObj = { ...this.dataObject };
+
+    console.log("VID OBJ");
+    console.log(vidObj);
 
     try {
       //find shit already downloaded

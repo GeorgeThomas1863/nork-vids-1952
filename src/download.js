@@ -173,7 +173,7 @@ export const downloadThumbnailFS = async (inputObj) => {
   const nameEnd = thumbnail.lastIndexOf(".");
   const picName = thumbnail.substring(nameStart + 1, nameEnd);
 
-  const savePath = `${watchPath}/${picName}.jpg`;
+  const savePath = `${watchPath}${picName}.jpg`;
 
   //build params
   const params = {
@@ -182,8 +182,8 @@ export const downloadThumbnailFS = async (inputObj) => {
     picId: picName,
   };
 
-  console.log("PIC PARAMS");
-  console.log(params);
+  // console.log("PIC PARAMS");
+  // console.log(params);
 
   const picModel = new KCNA(params);
   const picData = await picModel.downloadPicReq();
@@ -204,7 +204,7 @@ export const downloadVidFS = async (inputObj) => {
   const nameEnd = vidURL.lastIndexOf(".");
   const vidName = vidURL.substring(nameStart + 1, nameEnd);
 
-  const savePath = `${watchPath}/${vidName}.mp4`;
+  const savePath = `${watchPath}${vidName}.mp4`;
 
   const params = {
     url: vidURL,
@@ -214,8 +214,8 @@ export const downloadVidFS = async (inputObj) => {
     vidSizeBytes: vidSizeBytes,
   };
 
-  console.log("VID PARAMS");
-  console.log(params);
+  // console.log("VID PARAMS");
+  // console.log(params);
 
   const vidModel = new KCNA(params);
   const vidReturnData = await vidModel.downloadVidMultiThread();
