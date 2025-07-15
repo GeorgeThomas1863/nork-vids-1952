@@ -143,18 +143,24 @@ export const downloadNewVidArray = async () => {
       //skip full broadcasts
       if (type === "Full Broadcast") continue;
 
+      //obj for tracking
+      const storeObj = { ...downloadObj };
+
       //download thumbnail
       const thumbnailData = await downloadThumbnailFS(downloadObj);
-
-      console.log("THUMBNAIL DATA!!!");
-      console.log(thumbnailData);
+      if (thumbnailData) {
+        storeObj.thumbnailDownloaded = true;
+        storeObj.thumbnailDownloadedSize = thumbnailData;
+      }
 
       //download vid
       const vidReturnData = await downloadVidFS(downloadObj);
-      if (!thumbnailData || !vidReturnData) continue;
 
-      console.log("VID RETURN DATA!!!");
-      console.log(vidReturnData);
+      //if both fail dont save
+      if (!thumbnailData && !vidReturnData) continue;
+
+      // console.log("VID RETURN DATA!!!");
+      // console.log(vidReturnData);
 
       downloadDataArray.push({
         thumbnailData: thumbnailData,

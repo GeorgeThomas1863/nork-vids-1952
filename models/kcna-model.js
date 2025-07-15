@@ -155,7 +155,7 @@ class KCNA {
       });
 
       console.log(`DOWNLOAD COMPLETE: ${picId}.jpg | FINAL SIZE: ${Math.round(downloadedSize / 1024)}KB`);
-      return { downloadedSize: downloadedSize };
+      return downloadedSize;
     } catch (e) {
       console.log(url + "; " + e.message + "; F BREAK: " + e.function);
       return null;
@@ -193,6 +193,9 @@ class KCNA {
       //dont need all the shit in vidObj, so doing inputObj here
       const returnObj = { ...inputObj };
       returnObj.chunksProcessed = chunksProcessed;
+
+      console.log("RETURN OBJ");
+      console.log(returnObj);
 
       return returnObj;
     } catch (e) {
