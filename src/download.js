@@ -182,11 +182,14 @@ export const downloadThumbnailFS = async (inputObj) => {
     picId: picName,
   };
 
+  console.log("PIC PARAMS");
+  console.log(params);
+
   const picModel = new KCNA(params);
   const picData = await picModel.downloadPicReq();
 
-  console.log("PIC DATA");
-  console.log(picData);
+  // console.log("PIC DATA");
+  // console.log(picData);
 
   return picData;
 };
