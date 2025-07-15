@@ -191,13 +191,13 @@ class KCNA {
       await mergeModel.mergeChunks();
 
       //dont need all the shit in vidObj, so doing inputObj here
-      const returnObj = { ...inputObj };
-      returnObj.chunksProcessed = chunksProcessed;
+      // const returnObj = { ...inputObj };
+      // returnObj.chunksProcessed = chunksProcessed;
 
       console.log("RETURN OBJ");
-      console.log(returnObj);
+      console.log(vidObj);
 
-      return returnObj;
+      return vidObj;
     } catch (e) {
       console.log(e.url + "; " + e.message + "; F BREAK: " + e.function);
       //return null on failure
