@@ -19,9 +19,6 @@ export const getNewVidData = async () => {
 
   const newVidData = await parseVidDataArray(vidDataArray);
 
-  //   console.log("NEW VID DATA");
-  //   console.log(newVidData);
-
   return newVidData;
 };
 
@@ -55,9 +52,6 @@ export const getVidData = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL) return null;
   const { kcnaWatchContent } = CONFIG;
   const { vidURL } = inputObj;
-
-  //   console.log("GET VID DATA");
-  //   console.log(inputObj);
 
   const headerModel = new KCNA({ url: vidURL });
   const headerData = await headerModel.getMediaHeaders();
@@ -143,8 +137,17 @@ export const downloadNewVidArray = async () => {
   for (let i = 0; i < downloadArray.length; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      const thumbnailData = await downloadThumbnailFS(downloadArray[i]);
-      const vidReturnData = await downloadVidFS(downloadArray[i]);
+      const downloadObj = downloadArray[i];
+      const { type } = downloadObj;
+
+      //skip full broadcasts
+      if (type === "Full Broadcast") continue;
+
+      //download thumbnail
+      const thumbnailData = await downloadThumbnailFS(downloadObj);
+
+      //download vid
+      const vidReturnData = await downloadVidFS(downloadObj);
       if (!thumbnailData || !vidReturnData) continue;
 
       downloadDataArray.push({
@@ -207,6 +210,9 @@ export const downloadVidFS = async (inputObj) => {
     totalChunks: totalChunks,
     vidSizeBytes: vidSizeBytes,
   };
+
+  console.log("VID PARAMS");
+  console.log(params);
 
   const vidModel = new KCNA(params);
   const vidReturnData = await vidModel.downloadVidMultiThread();
