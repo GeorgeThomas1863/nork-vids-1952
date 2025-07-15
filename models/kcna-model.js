@@ -1,6 +1,6 @@
 import axios from "axios";
 import fs from "fs";
-import { DLHelper } from "./dl-helper.js";
+import DLHelper from "./dl-helper.js";
 import { randomDelay } from "../src/util.js";
 
 class KCNA {
