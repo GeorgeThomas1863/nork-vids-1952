@@ -239,8 +239,8 @@ export const downloadThumbnailFS = async (inputObj) => {
   const returnObj = {
     thumbnailDownloaded: true,
     thumbnailSavePath: picObj.savePath,
-    thumbnailId: picObj.picId,
     thumbnailDownloadedSize: picObj.downloadedSize,
+    itemId: picObj.picId,
   };
 
   return returnObj;
