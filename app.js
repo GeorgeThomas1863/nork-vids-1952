@@ -1,5 +1,7 @@
 //TO DO:
-// ON DOWNLOAD EACH VID (AND THUMBNAIL) SAVE TO NEW FOLDER?
+// SET UP NEW WATCH FOLDER (and get new config)
+//TEST VID AND PIC DOWNLOAD, STORE DOWNLOAD
+
 // BUILD UPLOAD
 
 import CONFIG from "./config/config.js";
