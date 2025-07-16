@@ -54,6 +54,10 @@ export const tgPostPicReq = async (inputParams) => {
   form.append("chat_id", chatId);
   form.append("photo", fs.createReadStream(picPath));
 
+  console.log("FORM");
+  console.log(form);
+  console.log("--------------------------------");
+
   try {
     const res = await axios.post(url, form, {
       headers: form.getHeaders(),
