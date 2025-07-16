@@ -138,6 +138,10 @@ export const uploadVidFS = async (inputObj) => {
       const start = i * chunkSize;
       const end = Math.min(vidSizeBytes, start + chunkSize);
 
+      console.log(`CHUNK START: ${start} | CHUNK END: ${end} | CHUNK NUMBER: ${i}`);
+
+      console.log(`CHUNK SIZE: ${end - start}`);
+
       //build chunk params
       const chunkParams = {
         start: start,
