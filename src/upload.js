@@ -61,22 +61,24 @@ export const uploadVidPicItem = async (inputObj) => {
 
   const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 
+  //PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
+ 
   //make an item NORMAL here (for label)
 
-  //upload thumbnail
-  const picParams = {
-    picId: itemId,
-    savePath: thumbnailSavePath,
-    dateNormal: dateNormal,
-    tgUploadId: tgUploadId,
-  };
+  // //upload thumbnail
+  // const picParams = {
+  //   picId: itemId,
+  //   savePath: thumbnailSavePath,
+  //   dateNormal: dateNormal,
+  //   tgUploadId: tgUploadId,
+  // };
 
-  const picUploadData = await uploadPicFS(picParams);
-  console.log("PIC UPLOAD DATA");
-  console.log(picUploadData);
-  console.log("--------------------------------");
+  // const picUploadData = await uploadPicFS(picParams);
+  // console.log("PIC UPLOAD DATA");
+  // console.log(picUploadData);
+  // console.log("--------------------------------");
 
-  if (!picUploadData) return null;
+  // if (!picUploadData) return null;
 
   //upload vid
   const vidParams = {
@@ -132,9 +134,11 @@ export const uploadVidFS = async (inputObj) => {
   for (let i = 0; i < totalChunks; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      //define chunk
+      //define chunk start end
       const start = i * chunkSize;
       const end = Math.min(vidSizeBytes, start + chunkSize);
+
+      //build chunk params
       const chunkParams = {
         start: start,
         end: end,
@@ -144,6 +148,10 @@ export const uploadVidFS = async (inputObj) => {
         tgUploadId: tgUploadId,
         thumbnailPath: thumbnailPath,
       };
+
+      console.log("CHUNK PARAMS");
+      console.log(chunkParams);
+      console.log("--------------------------------");
 
       const chunkForm = await buildChunkForm(chunkParams);
 
