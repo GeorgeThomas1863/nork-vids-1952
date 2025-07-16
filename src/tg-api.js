@@ -1,5 +1,5 @@
 import fs from "fs";
-// import FormData from "form-data";
+import FormData from "form-data";
 import axios from "axios";
 
 import tokenArray from "../config/tg-bot.js";
@@ -49,7 +49,7 @@ export const tgPostPicReq = async (inputParams) => {
 
   const url = `https://api.telegram.org/bot${token}/sendPhoto`;
 
-  console.log(url)
+  console.log(url);
 
   //build form
   const form = new FormData();
@@ -61,14 +61,11 @@ export const tgPostPicReq = async (inputParams) => {
   console.log("--------------------------------");
 
   try {
-    // const res = await axios.post(url, form, {
-    //   headers: form.getHeaders(),
-    // });
-
-    const res = await axios.post(url, form);
+    const res = await axios.post(url, form, {
+      headers: form.getHeaders(),
+    });
 
     console.log("RES");
-    console.log(res);
     console.log(res.data);
     console.log("--------------------------------");
 
