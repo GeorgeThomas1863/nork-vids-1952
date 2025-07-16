@@ -1,9 +1,10 @@
 import fs from "fs";
+// import FormData from "form-data";
 
 import CONFIG from "../config/config.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
-import { tgPostPicFS } from "./tg-api.js";
+import { tgPostPicReq, tgEditMessageCaption, tgPostVidReq } from "./tg-api.js";
 
 export const uploadNewVids = async () => {
   const { kcnaWatchDownloaded, kcnaWatchUploaded } = CONFIG;
@@ -30,7 +31,7 @@ export const uploadVidArray = async (inputArray) => {
   for (let i = 0; i < inputArray.length; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      const vidDataObj = await uploadVidFS(inputArray[i]);
+      const vidDataObj = await uploadVidPicItem(inputArray[i]);
       if (!vidDataObj) continue;
 
       uploadDataArray.push(vidDataObj);
@@ -43,9 +44,12 @@ export const uploadVidArray = async (inputArray) => {
   return uploadDataArray;
 };
 
-export const uploadVidFS = async (inputObj) => {
+//uploads thumbnail and vid SEPARATELY (might want to change)
+export const uploadVidPicItem = async (inputObj) => {
   if (!inputObj) return null;
-  const { thumbnailSavePath, vidSavePath, date, itemId } = inputObj;
+  const { thumbnailSavePath, vidSavePath, date, itemId, vidData } = inputObj;
+  const { totalChunks, vidSizeBytes } = vidData;
+  const { uploadChunkSize, tgUploadId } = CONFIG;
 
   //check if vid and thumbnail downloaded
   if (!fs.existsSync(thumbnailSavePath) || !fs.existsSync(vidSavePath)) {
@@ -64,20 +68,38 @@ export const uploadVidFS = async (inputObj) => {
     picId: itemId,
     savePath: thumbnailSavePath,
     dateNormal: dateNormal,
+    tgUploadId: tgUploadId,
   };
 
-  const picData = await tgPostPicFS(picParams);
+  const picUploadData = await uploadPicFS(picParams);
+  console.log("PIC UPLOAD DATA");
+  console.log(picUploadData);
+  console.log("--------------------------------");
+
+  if (!picUploadData) return null;
 
   //upload vid
+  const vidParams = {
+    thumbnailPath: thumbnailSavePath,
+    chunkSize: uploadChunkSize,
+    vidSizeBytes: vidSizeBytes,
+    totalChunks: totalChunks,
+    vidId: itemId,
+    savePath: vidSavePath,
+    dateNormal: dateNormal,
+    tgUploadId: tgUploadId,
+  };
 
-  console.log("UPLOAD VID FS");
-  console.log(inputObj);
+  const vidUploadData = await uploadVidFS(vidParams);
+  console.log("VID UPLOAD DATA");
+  console.log(vidUploadData);
+  console.log("--------------------------------");
+
+  if (!vidUploadData) return null;
 };
 
-export const tgPostPicFS = async (inputObj) => {
-  const { picId, savePath, dateNormal } = inputObj;
-  const { tgUploadId } = CONFIG;
-  const token = tokenArray[tokenIndex];
+export const uploadPicFS = async (inputObj) => {
+  const { picId, savePath, dateNormal, tgUploadId } = inputObj;
 
   //build pic params
   const picParams = {
@@ -85,51 +107,77 @@ export const tgPostPicFS = async (inputObj) => {
     picPath: savePath,
   };
 
-  const tgPicURL = `https://api.telegram.org/bot${token}/sendPhoto`;
-
-  let picData = await tgPostPicReq(tgPicURL, picParams);
-  const checkData = await checkToken(picData);
-
-  //retry if bot fucked
-  if (!checkData) picData = await tgPostPicReq(tgPicURL, picParams);
-
-  //if still cant upload data throw error
-  if (!picData || !picData.ok) {
-    const error = new Error("UPLOAD PIC FUCKED");
-    error.function = "tgPostPicFS";
-    error.content = inputObj;
-    throw error;
-  }
+  const picData = await tgPostPicReq(picParams);
+  if (!picData) return null;
 
   //build caption
   const caption = "<b>PIC: " + picId + ".jpg</b>" + "\n" + "<i>" + dateNormal + "</i>";
 
   //build edit caption params
   const editParams = {
-    chat_id: picData.result.chat.id,
-    message_id: picData.result.message_id,
+    editChannelId: picData.result.chat.id,
+    messageId: picData.result.message_id,
     caption: caption,
-    parse_mode: "HTML",
   };
 
-  const paramObj = {
-    params: editParams,
-    command: "editMessageCaption",
-  };
+  const editCaptionData = await tgEditMessageCaption(editParams);
+  return editCaptionData;
+};
 
-  //edit caption
-  const editModel = new TgReq({ inputObj: paramObj });
-  await editModel.tgPost(TgReq.tokenIndex);
-  const storeObj = { ...inputObj, ...postData.result };
+export const uploadVidFS = async (inputObj) => {
+  if (!inputObj) return null;
+  const { thumbnailPath, chunkSize, totalChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
 
-  //store pic Posted
-  try {
-    const storeModel = new dbModel(storeObj, CONFIG.picsUploaded);
-    const storeData = await storeModel.storeUniqueURL();
-    console.log("PIC " + picId + ".jpg UPLOADED AND STORED");
-    console.log(storeData);
-  } catch (e) {
-    console.log(e.url + "; " + e.message + "; F BREAK: " + e.function);
+  const chunkDataArray = [];
+  for (let i = 0; i < totalChunks; i++) {
+    if (!scrapeState.scrapeActive) return null;
+    try {
+      //define chunk
+      const chunkParams = {
+        start: i * chunkSize,
+        end: Math.min(vidSizeBytes, start + chunkSize),
+        chunkNumber: i,
+        totalChunks: totalChunks,
+        savePath: savePath,
+        tgUploadId: tgUploadId,
+        thumbnailPath: thumbnailPath,
+      };
+
+      const chunkForm = await buildChunkForm(chunkParams);
+
+      const chunkData = await tgPostVidReq({ form: chunkForm });
+      if (!chunkData) continue;
+
+      chunkDataArray.push(chunkData);
+    } catch (e) {
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
+    }
   }
-  return storeObj;
+
+  return chunkDataArray;
+};
+
+export const buildChunkForm = async (inputObj) => {
+  const { savePath, tgUploadId, thumbnailPath, start, end, chunkNumber, totalChunks } = inputObj;
+
+  const readStream = fs.createReadStream(savePath, { start: start, end: end - 1 });
+
+  // Create form data for this chunk
+  const formData = new FormData();
+  formData.append("chat_id", tgUploadId);
+  formData.append("video", readStream, {
+    filename: `chunk_${chunkNumber}_of_${totalChunks}.mp4`,
+    knownLength: end - start,
+  });
+
+  //set setting for auto play / streaming
+  formData.append("supports_streaming", "true");
+  formData.append("width", "1280");
+  formData.append("height", "720");
+
+  //add thumbnail
+  formData.append("thumb", fs.createReadStream(thumbnailPath));
+
+  return formData;
 };

@@ -1,5 +1,5 @@
 import fs from "fs";
-import FormData from "form-data";
+// import FormData from "form-data";
 import axios from "axios";
 
 import CONFIG from "../config/config.js";
@@ -11,8 +11,46 @@ let tokenIndex = 0;
 
 //--------------------------------
 
-export const tgPostPicReq = async (url, params) => {
-  const { chatId, picPath } = params;
+export const tgEditMessageCaption = async (inputParams) => {
+  const { editChannelId, messageId, caption } = inputParams;
+  const token = tokenArray[tokenIndex];
+
+  const params = {
+    chat_id: editChannelId,
+    message_id: messageId,
+    caption: caption,
+    parse_mode: "HTML",
+  };
+
+  const url = `https://api.telegram.org/bot${token}/editMessageCaption`;
+  const data = await tgPostReq(url, params);
+
+  const checkData = await checkToken(data);
+
+  //try again
+  if (!checkData) return await tgEditMessageCaption(inputParams);
+
+  return data;
+};
+
+export const tgPostReq = async (url, params) => {
+  if (!url || !params) return null;
+
+  try {
+    const res = await axios.post(url, params);
+    return res.data;
+  } catch (e) {
+    console.log(e.message);
+    //axios throws error on 429, so need to return
+    return e.response.data;
+  }
+};
+
+export const tgPostPicReq = async (inputParams) => {
+  const { chatId, picPath } = inputParams;
+  const token = tokenArray[tokenIndex];
+
+  const url = `https://api.telegram.org/bot${token}/sendPhoto`;
 
   //build form
   const form = new FormData();
@@ -23,33 +61,60 @@ export const tgPostPicReq = async (url, params) => {
     const res = await axios.post(url, form, {
       headers: form.getHeaders(),
     });
+    // const checkData = await checkToken(res.data);
+
+    // //retry if needed
+    // if (!checkData) return await tgPostPicReq(inputParams);
+
     return res.data;
   } catch (e) {
-    console.log(e.message);
-    return e.response.data;
+    if (e.response && e.response.data) {
+      //check token
+      const checkData = await checkToken(e.response.data);
+
+      //retry
+      if (!checkData) return await tgPostPicReq(inputParams);
+    } else {
+      //otherwise throw error
+      const error = new Error("UPLOAD PIC FUCKED");
+      error.function = "tgPostPicReq";
+      error.content = inputParams;
+      throw error;
+    }
   }
 };
 
-export const tgEditMessageCaption = async (inputParams) => {
-  const { baseURL } = CONFIG;
-  const { editChannelId, messageId, caption } = inputParams;
+export const tgPostVidReq = async (inputParams) => {
+  const { form } = inputParams;
   const token = tokenArray[tokenIndex];
 
-  const params = {
-    chat_id: editChannelId,
-    message_id: messageId,
-    caption: caption,
-  };
+  const url = `https://api.telegram.org/bot${token}/sendVideo`;
 
-  const url = `${baseURL}${token}/editMessageCaption`;
-  const data = await tgPostReq(url, params);
+  try {
+    const res = await axios.post(url, form, {
+      headers: form.getHeaders(),
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
+    });
 
-  const checkData = await checkToken(data);
+    // console.log("!!!!!!RES");
+    // console.log(res.data);
 
-  //try again
-  if (!checkData) return await tgEditMessageCaption(inputParams);
+    return res.data;
+  } catch (e) {
+    if (e.response && e.response.data) {
+      //check token
+      const checkData = await checkToken(e.response.data);
 
-  return data;
+      //retry
+      if (!checkData) return await tgPostVidReq(inputParams);
+    } else {
+      const error = new Error("UPLOAD VID FUCKED");
+      error.function = "tgPostVidReq";
+      error.content = inputParams;
+      throw error;
+    }
+  }
 };
 
 //------------------------
