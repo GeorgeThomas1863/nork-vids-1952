@@ -62,7 +62,7 @@ export const uploadVidPicItem = async (inputObj) => {
   const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 
   //PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
- 
+
   //make an item NORMAL here (for label)
 
   // //upload thumbnail
@@ -180,6 +180,8 @@ export const buildChunkForm = async (inputObj) => {
     filename: `chunk_${chunkNumber}_of_${totalChunks}.mp4`,
     knownLength: end - start,
   });
+
+  console.log(`CHUNK NAME: chunk_${chunkNumber}_of_${totalChunks}.mp4`);
 
   //set setting for auto play / streaming
   formData.append("supports_streaming", "true");
