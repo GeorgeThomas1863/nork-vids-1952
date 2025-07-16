@@ -51,20 +51,6 @@ export const uploadVidPicItem = async (inputObj) => {
   const { vidSizeBytes } = vidData;
   const { uploadChunkSize, tgUploadId } = CONFIG;
 
-  console.log("UPLOAD CHUNK SIZE");
-  console.log(uploadChunkSize);
-  console.log("--------------------------------");
-
-  console.log("VID SIZE BYTES");
-  console.log(vidSizeBytes);
-  console.log("--------------------------------");
-
-  const uploadChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
-
-  console.log("UPLOAD CHUNKS");
-  console.log(uploadChunks);
-  console.log("--------------------------------");
-
   //check if vid and thumbnail downloaded
   if (!fs.existsSync(thumbnailSavePath) || !fs.existsSync(vidSavePath)) {
     const error = new Error("Vid or thumbnail NOT downloaded");
