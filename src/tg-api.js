@@ -65,6 +65,11 @@ export const tgPostPicReq = async (inputParams) => {
 
     const res = await axios.post(url, form);
 
+    console.log("RES");
+    console.log(res);
+    console.log(res.data);
+    console.log("--------------------------------");
+
     // const checkData = await checkToken(res.data);
 
     // //retry if needed
