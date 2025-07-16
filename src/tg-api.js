@@ -49,6 +49,8 @@ export const tgPostPicReq = async (inputParams) => {
 
   const url = `https://api.telegram.org/bot${token}/sendPhoto`;
 
+  console.log(url)
+
   //build form
   const form = new FormData();
   form.append("chat_id", chatId);
