@@ -80,6 +80,10 @@ export const uploadVidPicItem = async (inputObj) => {
 
   // if (!picUploadData) return null;
 
+  console.log("UPLOAD CHUNK SIZE");
+  console.log(uploadChunkSize);
+  console.log("--------------------------------");
+
   //upload vid
   const vidParams = {
     thumbnailPath: thumbnailSavePath,
@@ -100,35 +104,39 @@ export const uploadVidPicItem = async (inputObj) => {
   if (!vidUploadData) return null;
 };
 
-export const uploadPicFS = async (inputObj) => {
-  const { picId, savePath, dateNormal, tgUploadId } = inputObj;
+// export const uploadPicFS = async (inputObj) => {
+//   const { picId, savePath, dateNormal, tgUploadId } = inputObj;
 
-  //build pic params
-  const picParams = {
-    chatId: tgUploadId,
-    picPath: savePath,
-  };
+//   //build pic params
+//   const picParams = {
+//     chatId: tgUploadId,
+//     picPath: savePath,
+//   };
 
-  const picData = await tgPostPicReq(picParams);
-  if (!picData) return null;
+//   const picData = await tgPostPicReq(picParams);
+//   if (!picData) return null;
 
-  //build caption
-  const caption = "<b>PIC: " + picId + ".jpg</b>" + "\n" + "<i>" + dateNormal + "</i>";
+//   //build caption
+//   const caption = "<b>PIC: " + picId + ".jpg</b>" + "\n" + "<i>" + dateNormal + "</i>";
 
-  //build edit caption params
-  const editParams = {
-    editChannelId: picData.result.chat.id,
-    messageId: picData.result.message_id,
-    caption: caption,
-  };
+//   //build edit caption params
+//   const editParams = {
+//     editChannelId: picData.result.chat.id,
+//     messageId: picData.result.message_id,
+//     caption: caption,
+//   };
 
-  const editCaptionData = await tgEditMessageCaption(editParams);
-  return editCaptionData;
-};
+//   const editCaptionData = await tgEditMessageCaption(editParams);
+//   return editCaptionData;
+// };
 
 export const uploadVidFS = async (inputObj) => {
   if (!inputObj) return null;
   const { thumbnailPath, chunkSize, totalChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
+
+  console.log("upload VIDFS CHUNK SIZE");
+  console.log(chunkSize);
+  console.log("--------------------------------");
 
   const chunkDataArray = [];
   for (let i = 0; i < totalChunks; i++) {
