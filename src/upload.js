@@ -133,9 +133,11 @@ export const uploadVidFS = async (inputObj) => {
     if (!scrapeState.scrapeActive) return null;
     try {
       //define chunk
+      const start = i * chunkSize;
+      const end = Math.min(vidSizeBytes, start + chunkSize);
       const chunkParams = {
-        start: i * chunkSize,
-        end: Math.min(vidSizeBytes, start + chunkSize),
+        start: start,
+        end: end,
         chunkNumber: i,
         totalChunks: totalChunks,
         savePath: savePath,

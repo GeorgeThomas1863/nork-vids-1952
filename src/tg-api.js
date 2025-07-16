@@ -49,16 +49,10 @@ export const tgPostPicReq = async (inputParams) => {
 
   const url = `https://api.telegram.org/bot${token}/sendPhoto`;
 
-  console.log(url);
-
   //build form
   const form = new FormData();
   form.append("chat_id", chatId);
   form.append("photo", fs.createReadStream(picPath));
-
-  console.log("FORM");
-  console.log(form);
-  console.log("--------------------------------");
 
   try {
     const res = await axios.post(url, form, {
