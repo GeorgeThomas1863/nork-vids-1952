@@ -78,6 +78,7 @@ export const tgPostPicReq = async (inputParams) => {
     } else {
       //otherwise throw error
       const error = new Error("UPLOAD PIC FUCKED");
+      console.log(e);
       error.function = "tgPostPicReq";
       error.content = inputParams;
       throw error;
