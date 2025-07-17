@@ -31,10 +31,13 @@ export const uploadVidArray = async (inputArray) => {
   for (let i = 0; i < inputArray.length; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      const vidDataObj = await uploadVidPicItem(inputArray[i]);
-      if (!vidDataObj) continue;
+      console.log("UPLOAD VID ARRAY ITEM");
+      console.log(inputArray[i]);
+      console.log("--------------------------------");
+      // const vidDataObj = await uploadVidPicItem(inputArray[i]);
+      // if (!vidDataObj) continue;
 
-      uploadDataArray.push(vidDataObj);
+      // uploadDataArray.push(vidDataObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
