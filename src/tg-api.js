@@ -100,8 +100,8 @@ export const tgPostVidReq = async (inputParams) => {
       maxContentLength: Infinity,
     });
 
-    // console.log("!!!!!!RES");
-    // console.log(res.data);
+    console.log("!!!!!!RES");
+    console.log(res.data);
 
     return res.data;
   } catch (e) {
