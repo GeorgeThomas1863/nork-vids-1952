@@ -85,16 +85,102 @@ export const uploadVidFS = async (inputObj) => {
     tgUploadId: tgUploadId,
   };
 
-  console.log("VID PARAMS");
-  console.log(vidParams);
-  console.log("--------------------------------");
+  const uploadChunkData = await uploadVidChunk(vidParams);
 
-  // const vidUploadData = await uploadVidFS(vidParams);
-  // console.log("VID UPLOAD DATA");
+  // console.log("VID PARAMS");
+  // console.log(vidParams);
+  // console.log("--------------------------------");
+
+  // console.log("VID UPLOAD DATA");s
   // console.log(vidUploadData);
   // console.log("--------------------------------");
 
   // if (!vidUploadData) return null;
+};
+
+export const uploadVidChunk = async (inputObj) => {
+  if (!inputObj) return null;
+  const { thumbnailPath, uploadChunkSize, uploadChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
+
+  const chunkParams = { ...inputObj };
+
+  // console.log("upload VIDFS CHUNK SIZE");
+  // console.log(uploadChunkSize);
+  // console.log("--------------------------------");
+
+  const chunkDataArray = [];
+  for (let i = 0; i < uploadChunks; i++) {
+    if (!scrapeState.scrapeActive) return null;
+    try {
+      //define chunk start end
+      chunkParams.chunkStart = i * uploadChunkSize;
+      chunkParams.chunkEnd = Math.min(vidSizeBytes, chunkParams.chunkStart + uploadChunkSize);
+      chunkParams.chunkNumber = i;
+
+      // const start = i * uploadChunkSize;
+      // const end = Math.min(vidSizeBytes, start + uploadChunkSize);
+
+      console.log(`CHUNK START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${i}`);
+
+      //build chunk params
+      // const chunkParams = {
+      //   chunkStart: start,
+      //   chunkEnd: end,
+      //   chunkNumber: i,
+      //   uploadChunks: uploadChunks,
+      //   savePath: savePath,
+      //   tgUploadId: tgUploadId,
+      //   thumbnailPath: thumbnailPath,
+      // };
+
+      console.log("CHUNK PARAMS");
+      console.log(chunkParams);
+
+      const chunkForm = await buildChunkForm(chunkParams);
+
+      // const chunkPostData = await tgPostVidReq({ form: chunkForm });
+      // if (!chunkPostData) continue;
+
+      // chunkDataArray.push(chunkPostData);
+    } catch (e) {
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
+    }
+  }
+
+  return chunkDataArray;
+};
+
+export const buildChunkForm = async (inputObj) => {
+  const { savePath, tgUploadId, thumbnailPath, chunkStart, chunkEnd, chunkNumber, uploadChunks } = inputObj;
+
+  console.log("BUILD CHUNK FORM!!!!!!");
+  console.log(inputObj);
+  console.log("--------------------------------");
+
+  // const readStream = fs.createReadStream(savePath, { start: chunkStart, end: chunkEnd - 1 });
+
+  // // Create form data for this chunk
+  // const formData = new FormData();
+  // formData.append("chat_id", tgUploadId);
+  // formData.append("video", readStream, {
+  //   filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
+  //   knownLength: chunkEnd - chunkStart,
+  // });
+
+  // console.log(`UPLOADING CHUNK ${chunkNumber + 1} of ${uploadChunks}`);
+  // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
+  // console.log("--------------------------------");
+
+  // //set setting for auto play / streaming
+  // formData.append("supports_streaming", "true");
+  // formData.append("width", "1280");
+  // formData.append("height", "720");
+
+  // //add thumbnail
+  // formData.append("thumb", fs.createReadStream(thumbnailPath));
+
+  // return formData;
 };
 
 //PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
@@ -143,82 +229,3 @@ export const uploadVidFS = async (inputObj) => {
 //   const editCaptionData = await tgEditMessageCaption(editParams);
 //   return editCaptionData;
 // };
-
-export const uploadVidChunk = async (inputObj) => {
-  if (!inputObj) return null;
-  const { thumbnailPath, uploadChunkSize, uploadChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
-
-  console.log("upload VIDFS CHUNK SIZE");
-  console.log(uploadChunkSize);
-  console.log("--------------------------------");
-
-  const chunkDataArray = [];
-  for (let i = 0; i < uploadChunks; i++) {
-    if (!scrapeState.scrapeActive) return null;
-    try {
-      //define chunk start end
-      const start = i * uploadChunkSize;
-      const end = Math.min(vidSizeBytes, start + uploadChunkSize);
-
-      console.log(`CHUNK START: ${start} | CHUNK END: ${end} | CHUNK NUMBER: ${i}`);
-
-      //build chunk params
-      const chunkParams = {
-        chunkStart: start,
-        chunkEnd: end,
-        chunkNumber: i,
-        uploadChunks: uploadChunks,
-        savePath: savePath,
-        tgUploadId: tgUploadId,
-        thumbnailPath: thumbnailPath,
-      };
-
-      console.log("CHUNK PARAMS");
-      console.log(chunkParams);
-
-      const chunkForm = await buildChunkForm(chunkParams);
-
-      const chunkData = await tgPostVidReq({ form: chunkForm });
-      if (!chunkData) continue;
-
-      chunkDataArray.push(chunkData);
-    } catch (e) {
-      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
-      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
-    }
-  }
-
-  return chunkDataArray;
-};
-
-export const buildChunkForm = async (inputObj) => {
-  const { savePath, tgUploadId, thumbnailPath, chunkStart, chunkEnd, chunkNumber, uploadChunks } = inputObj;
-
-  console.log("BUILD CHUNK FORM!!!!!!");
-  console.log(inputObj);
-  console.log("--------------------------------");
-
-  const readStream = fs.createReadStream(savePath, { start: chunkStart, end: chunkEnd - 1 });
-
-  // Create form data for this chunk
-  const formData = new FormData();
-  formData.append("chat_id", tgUploadId);
-  formData.append("video", readStream, {
-    filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
-    knownLength: chunkEnd - chunkStart,
-  });
-
-  console.log(`UPLOADING CHUNK ${chunkNumber + 1} of ${uploadChunks}`);
-  console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
-  console.log("--------------------------------");
-
-  //set setting for auto play / streaming
-  formData.append("supports_streaming", "true");
-  formData.append("width", "1280");
-  formData.append("height", "720");
-
-  //add thumbnail
-  formData.append("thumb", fs.createReadStream(thumbnailPath));
-
-  return formData;
-};
