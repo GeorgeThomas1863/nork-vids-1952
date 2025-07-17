@@ -150,8 +150,6 @@ export const uploadVidFS = async (inputObj) => {
 
       console.log(`CHUNK START: ${start} | CHUNK END: ${end} | CHUNK NUMBER: ${i}`);
 
-      console.log(`CHUNK SIZE: ${end - start}`);
-
       //build chunk params
       const chunkParams = {
         start: start,
@@ -165,7 +163,6 @@ export const uploadVidFS = async (inputObj) => {
 
       console.log("CHUNK PARAMS");
       console.log(chunkParams);
-      console.log("--------------------------------");
 
       const chunkForm = await buildChunkForm(chunkParams);
 
@@ -195,7 +192,9 @@ export const buildChunkForm = async (inputObj) => {
     knownLength: end - start,
   });
 
-  console.log(`CHUNK NAME: chunk_${chunkNumber}_of_${uploadChunks}.mp4`);
+  console.log(`UPLOADING CHUNK ${chunkNumber + 1} of ${uploadChunks}`);
+  console.log(`CHUNK SIZE: ${end - start}`);
+  console.log("--------------------------------");
 
   //set setting for auto play / streaming
   formData.append("supports_streaming", "true");
