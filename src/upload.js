@@ -28,7 +28,8 @@ export const uploadVidArray = async (inputArray) => {
   if (!inputArray || !inputArray.length) return null;
 
   const uploadDataArray = [];
-  for (let i = 0; i < inputArray.length; i++) {
+  // for (let i = 0; i < inputArray.length; i++) {
+  for (let i = 0; i < 1; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
       // console.log("UPLOAD VID ARRAY ITEM");
@@ -145,6 +146,10 @@ export const uploadVidChunk = async (inputObj) => {
 
 export const buildChunkForm = async (inputObj) => {
   const { savePath, tgUploadId, thumbnailPath, chunkStart, chunkEnd, chunkLength, chunkNumber, uploadChunks } = inputObj;
+
+  console.log("SAVE PATH");
+  console.log(savePath);
+  console.log("--------------------------------");
 
   const readStream = fs.createReadStream(savePath, { start: +chunkStart, end: +chunkEnd - 1 });
 
