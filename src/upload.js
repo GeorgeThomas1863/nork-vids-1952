@@ -118,7 +118,8 @@ export const uploadVidChunk = async (inputObj) => {
       chunkParams.chunkLength = chunkParams.chunkEnd - chunkParams.chunkStart;
       chunkParams.chunkNumber = i + 1; //THIS WILL BREAK THINGS
 
-      console.log(`CHUNK START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${i}`);
+      console.log("++++++++++++++++++++++++");
+      console.log(`NEW CHUNK! START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${i}`);
 
       // const start = i * uploadChunkSize;
       // const end = Math.min(vidSizeBytes, start + uploadChunkSize);
