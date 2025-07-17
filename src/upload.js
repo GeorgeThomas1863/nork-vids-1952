@@ -31,13 +31,13 @@ export const uploadVidArray = async (inputArray) => {
   for (let i = 0; i < inputArray.length; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      console.log("UPLOAD VID ARRAY ITEM");
-      console.log(inputArray[i]);
-      console.log("--------------------------------");
-      // const vidDataObj = await uploadVidPicItem(inputArray[i]);
-      // if (!vidDataObj) continue;
+      // console.log("UPLOAD VID ARRAY ITEM");
+      // console.log(inputArray[i]);
+      // console.log("--------------------------------");
+      const vidDataObj = await uploadVidPicItem(inputArray[i]);
+      if (!vidDataObj) continue;
 
-      // uploadDataArray.push(vidDataObj);
+      uploadDataArray.push(vidDataObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
@@ -51,63 +51,68 @@ export const uploadVidArray = async (inputArray) => {
 export const uploadVidPicItem = async (inputObj) => {
   if (!inputObj) return null;
   const { thumbnailSavePath, vidSavePath, date, itemId, vidData } = inputObj;
-  const { vidSizeBytes } = vidData;
+  const { vidSizeBytes, vidSizeMB} = vidData;
   const { uploadChunkSize, tgUploadId } = CONFIG;
 
-  console.log("UPLOAD CHUNK SIZE");
-  console.log(uploadChunkSize);
-  console.log("--------------------------------");
+  // console.log("UPLOAD CHUNK SIZE");
+  // console.log(uploadChunkSize);
+  // console.log("--------------------------------");
 
   const uploadChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
 
+  console.log("UPLOAD CHUNKS");
+  console.log(uploadChunks);
+  console.log(vidSizeMB + "MB");
+  console.log("--------------------------------");
+
   //check if vid and thumbnail downloaded
-  if (!fs.existsSync(thumbnailSavePath) || !fs.existsSync(vidSavePath)) {
-    const error = new Error("Vid or thumbnail NOT downloaded");
-    error.function = "uploadVidFS";
-    error.content = inputObj;
-    throw error;
-  }
+  // if (!fs.existsSync(thumbnailSavePath) || !fs.existsSync(vidSavePath)) {
+  //   const error = new Error("Vid or thumbnail NOT downloaded");
+  //   error.function = "uploadVidFS";
+  //   error.content = inputObj;
+  //   throw error;
+  // }
 
-  const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+  // const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 
-  //PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
-
-  //make an item NORMAL here (for label)
-
-  // //upload thumbnail
-  // const picParams = {
-  //   picId: itemId,
-  //   savePath: thumbnailSavePath,
+  // //upload vid
+  // const vidParams = {
+  //   thumbnailPath: thumbnailSavePath,
+  //   uploadChunkSize: uploadChunkSize,
+  //   vidSizeBytes: vidSizeBytes,
+  //   uploadChunks: uploadChunks,
+  //   vidId: itemId,
+  //   savePath: vidSavePath,
   //   dateNormal: dateNormal,
   //   tgUploadId: tgUploadId,
   // };
 
-  // const picUploadData = await uploadPicFS(picParams);
-  // console.log("PIC UPLOAD DATA");
-  // console.log(picUploadData);
+  // const vidUploadData = await uploadVidFS(vidParams);
+  // console.log("VID UPLOAD DATA");
+  // console.log(vidUploadData);
   // console.log("--------------------------------");
 
-  // if (!picUploadData) return null;
-
-  //upload vid
-  const vidParams = {
-    thumbnailPath: thumbnailSavePath,
-    uploadChunkSize: uploadChunkSize,
-    vidSizeBytes: vidSizeBytes,
-    uploadChunks: uploadChunks,
-    vidId: itemId,
-    savePath: vidSavePath,
-    dateNormal: dateNormal,
-    tgUploadId: tgUploadId,
-  };
-
-  const vidUploadData = await uploadVidFS(vidParams);
-  console.log("VID UPLOAD DATA");
-  console.log(vidUploadData);
-  console.log("--------------------------------");
-
-  if (!vidUploadData) return null;
+  // if (!vidUploadData) return null;
 };
+
+//PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
+
+//make an item NORMAL here (for label)
+
+// //upload thumbnail
+// const picParams = {
+//   picId: itemId,
+//   savePath: thumbnailSavePath,
+//   dateNormal: dateNormal,
+//   tgUploadId: tgUploadId,
+// };
+
+// const picUploadData = await uploadPicFS(picParams);
+// console.log("PIC UPLOAD DATA");
+// console.log(picUploadData);
+// console.log("--------------------------------");
+
+// if (!picUploadData) return null;
 
 // export const uploadPicFS = async (inputObj) => {
 //   const { picId, savePath, dateNormal, tgUploadId } = inputObj;
