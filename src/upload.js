@@ -126,10 +126,14 @@ export const uploadVidChunk = async (inputObj) => {
 
       const chunkForm = await buildChunkForm(chunkParams);
 
-      const chunkPostData = await tgPostVidReq({ form: chunkForm });
-      if (!chunkPostData) continue;
+      console.log("CHUNK FORM");
+      console.log(chunkForm);
+      console.log("--------------------------------");
 
-      chunkDataArray.push(chunkPostData);
+      // const chunkPostData = await tgPostVidReq({ form: chunkForm });
+      // if (!chunkPostData) continue;
+
+      // chunkDataArray.push(chunkPostData);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
@@ -163,10 +167,6 @@ export const buildChunkForm = async (inputObj) => {
 
   //add thumbnail
   formData.append("thumb", fs.createReadStream(thumbnailPath));
-
-  console.log("FORM DATA");
-  console.log(formData);
-  console.log("--------------------------------");
 
   return formData;
 };
