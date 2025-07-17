@@ -152,8 +152,8 @@ export const uploadVidFS = async (inputObj) => {
 
       //build chunk params
       const chunkParams = {
-        start: start,
-        end: end,
+        chunkStart: start,
+        chunkEnd: end,
         chunkNumber: i,
         uploadChunks: uploadChunks,
         savePath: savePath,
@@ -180,20 +180,20 @@ export const uploadVidFS = async (inputObj) => {
 };
 
 export const buildChunkForm = async (inputObj) => {
-  const { savePath, tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
+  const { savePath, tgUploadId, thumbnailPath, chunkStart, chunkEnd, chunkNumber, uploadChunks } = inputObj;
 
   console.log("BUILD CHUNK FORM!!!!!!");
   console.log(inputObj);
   console.log("--------------------------------");
 
-  const readStream = fs.createReadStream(savePath, { start: start, end: end - 1 });
+  const readStream = fs.createReadStream(savePath, { start: chunkStart, end: chunkEnd - 1 });
 
   // Create form data for this chunk
   const formData = new FormData();
   formData.append("chat_id", tgUploadId);
   formData.append("video", readStream, {
     filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
-    knownLength: end - start,
+    knownLength: chunkEnd - chunkStart,
   });
 
   console.log(`UPLOADING CHUNK ${chunkNumber + 1} of ${uploadChunks}`);
