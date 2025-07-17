@@ -127,9 +127,9 @@ export const uploadVidChunk = async (inputObj) => {
 
       const chunkForm = await buildChunkForm(chunkParams);
 
-      // console.log("CHUNK FORM");
-      // console.log(chunkForm);
-      // console.log("--------------------------------");
+      console.log("CHUNK FORM");
+      console.log(chunkForm);
+      console.log("--------------------------------");
 
       const chunkPostData = await tgPostVidReq({ form: chunkForm });
       if (!chunkPostData) continue;
@@ -149,9 +149,9 @@ export const buildChunkForm = async (inputObj) => {
 
   const readStream = fs.createReadStream(savePath, { start: +chunkStart, end: +chunkEnd - 1 });
 
-  console.log("READ STREAM");
-  console.log(readStream);
-  console.log("--------------------------------");
+  // console.log("READ STREAM");
+  // console.log(readStream);
+  // console.log("--------------------------------");
 
   // Create form data for this chunk
   const formData = new FormData();
