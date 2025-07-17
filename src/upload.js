@@ -197,7 +197,7 @@ export const buildChunkForm = async (inputObj) => {
   });
 
   console.log(`UPLOADING CHUNK ${chunkNumber + 1} of ${uploadChunks}`);
-  console.log(`CHUNK SIZE: ${end - start}`);
+  console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
   console.log("--------------------------------");
 
   //set setting for auto play / streaming
