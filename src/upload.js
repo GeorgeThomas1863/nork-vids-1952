@@ -131,10 +131,10 @@ export const uploadVidChunk = async (inputObj) => {
       // console.log(chunkForm);
       // console.log("--------------------------------");
 
-      // const chunkPostData = await tgPostVidReq({ form: chunkForm });
-      // if (!chunkPostData) continue;
+      const chunkPostData = await tgPostVidReq({ form: chunkForm });
+      if (!chunkPostData) continue;
 
-      // chunkDataArray.push(chunkPostData);
+      chunkDataArray.push(chunkPostData);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
