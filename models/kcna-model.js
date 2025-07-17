@@ -172,7 +172,7 @@ class KCNA {
   //complex multi thread download
   async downloadVidMultiThread() {
     //get obj data
-    const { totalChunks } = this.dataObject;
+    const { downloadChunks } = this.dataObject;
     const vidObj = { ...this.dataObject };
 
     try {
@@ -182,7 +182,7 @@ class KCNA {
       vidObj.completedChunkArray = completedChunkArray;
 
       if (completedChunkArray.length > 0) {
-        console.log("Resuming Chunk " + completedChunkArray.length + " of " + totalChunks + " total chunks");
+        console.log("Resuming Chunk " + completedChunkArray.length + " of " + downloadChunks + " total chunks");
       }
 
       //create vid download queue

@@ -17,23 +17,23 @@ class DLHelper {
   //UTIL for multi thread vid download
 
   async getCompletedVidChunks() {
-    const { vidTempPath, totalChunks, vidSizeBytes } = this.dataObject;
+    const { vidTempPath, downloadChunks, vidSizeBytes } = this.dataObject;
     const { vidChunkSize } = CONFIG;
 
     // Make sure we have all required properties
-    if (!vidTempPath || !totalChunks || !vidSizeBytes) {
+    if (!vidTempPath || !downloadChunks || !vidSizeBytes) {
       console.log("Error: Missing required properties for getCompletedVidChunks");
       return [];
     }
 
     const completedChunkArray = [];
 
-    for (let i = 0; i < totalChunks; i++) {
+    for (let i = 0; i < downloadChunks; i++) {
       const tempFile = `${vidTempPath}.part${i}`;
 
       if (fs.existsSync(tempFile)) {
         const stats = fs.statSync(tempFile);
-        const expectedSize = i < totalChunks - 1 ? vidChunkSize : vidSizeBytes - i * vidChunkSize;
+        const expectedSize = i < downloadChunks - 1 ? vidChunkSize : vidSizeBytes - i * vidChunkSize;
 
         if (stats.size === expectedSize) {
           completedChunkArray.push(i);
@@ -47,11 +47,11 @@ class DLHelper {
   }
 
   async createVidQueue() {
-    const { completedChunkArray, totalChunks, vidSizeBytes } = this.dataObject;
+    const { completedChunkArray, downloadChunks, vidSizeBytes } = this.dataObject;
     const { vidChunkSize } = CONFIG;
     
     // Make sure we have all required properties
-    if (!totalChunks || !vidSizeBytes) {
+    if (!downloadChunks || !vidSizeBytes) {
       console.log("Error: Missing required properties for createVidQueue");
       return [];
     }
@@ -61,7 +61,7 @@ class DLHelper {
 
     const pendingChunkArray = [];
 
-    for (let i = 0; i < totalChunks; i++) {
+    for (let i = 0; i < downloadChunks; i++) {
       if (!completedChunks.includes(i)) {
         const start = i * vidChunkSize;
         const end = Math.min(start + vidChunkSize - 1, vidSizeBytes - 1);
@@ -78,11 +78,11 @@ class DLHelper {
   }
 
   async processVidQueue() {
-    const { completedChunkArray, pendingChunkArray, totalChunks } = this.dataObject;
+    const { completedChunkArray, pendingChunkArray, downloadChunks } = this.dataObject;
     const { vidConcurrent, vidRetries } = CONFIG;
     
     // Make sure we have all required properties
-    if (!totalChunks || !pendingChunkArray) {
+    if (!downloadChunks || !pendingChunkArray) {
       console.log("Error: Missing required properties for processVidQueue");
       return [];
     }
@@ -127,8 +127,8 @@ class DLHelper {
         }
 
         // Show progress
-        const progress = ((downloadedChunkArray.length / totalChunks) * 100).toFixed(1);
-        console.log(`Overall progress: ${progress}% (${downloadedChunkArray.length}/${totalChunks} chunks)`);
+        const progress = ((downloadedChunkArray.length / downloadChunks) * 100).toFixed(1);
+        console.log(`Overall progress: ${progress}% (${downloadedChunkArray.length}/${downloadChunks} chunks)`);
       }
 
       //update remaining
@@ -195,12 +195,12 @@ class DLHelper {
   }
 
   async mergeChunks() {
-    const { savePath, vidTempPath, totalChunks } = this.dataObject;
+    const { savePath, vidTempPath, downloadChunks } = this.dataObject;
 
     console.log("Merging chunks...");
     const writeStream = fs.createWriteStream(savePath);
 
-    for (let i = 0; i < totalChunks; i++) {
+    for (let i = 0; i < downloadChunks; i++) {
       const tempFile = `${vidTempPath}.part${i}`;
       const chunkData = fs.readFileSync(tempFile);
       writeStream.write(chunkData);
@@ -212,9 +212,9 @@ class DLHelper {
   }
 
   async cleanupTempVidFiles() {
-    const { vidTempPath, totalChunks } = this.dataObject;
+    const { vidTempPath, downloadChunks } = this.dataObject;
 
-    for (let i = 0; i < totalChunks; i++) {
+    for (let i = 0; i < downloadChunks; i++) {
       const tempFile = `${vidTempPath}.part${i}`;
       if (fs.existsSync(tempFile)) {
         fs.unlinkSync(tempFile);

@@ -100,7 +100,7 @@ export const parseHeaderData = async (inputData) => {
 
   const vidSizeBytes = +contentRange.split("/")[1];
   const vidSizeMB = Math.round(vidSizeBytes / (1024 * 1024));
-  const totalChunks = Math.ceil(vidSizeBytes / vidChunkSize);
+  const downloadChunks = Math.ceil(vidSizeBytes / vidChunkSize);
 
   const etag = inputData.etag;
   const serverData = inputData.server;
@@ -109,7 +109,7 @@ export const parseHeaderData = async (inputData) => {
   const headerObj = {
     vidSizeBytes: vidSizeBytes,
     vidSizeMB: vidSizeMB,
-    totalChunks: totalChunks,
+    downloadChunks: downloadChunks,
     etag: etag,
     serverData: serverData,
     vidEditDate: vidEditDate,
@@ -181,7 +181,7 @@ export const downloadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
   const { tempPath, watchPath } = CONFIG;
   const { vidURL, vidData } = inputObj;
-  const { vidSizeBytes, totalChunks } = vidData;
+  const { vidSizeBytes, downloadChunks } = vidData;
 
   const nameStart = vidURL.lastIndexOf("/");
   const nameEnd = vidURL.lastIndexOf(".");
@@ -193,7 +193,7 @@ export const downloadVidFS = async (inputObj) => {
     url: vidURL,
     savePath: savePath,
     vidTempPath: tempPath,
-    totalChunks: totalChunks,
+    downloadChunks: downloadChunks,
     vidSizeBytes: vidSizeBytes,
   };
 
