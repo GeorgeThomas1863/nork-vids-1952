@@ -171,7 +171,7 @@ export const buildChunkForm = async (inputObj) => {
   formData.append("height", "720");
 
   //add thumbnail
-  formData.append("thumb", fs.createReadStream(thumbnailPath));
+  // formData.append("thumb", fs.createReadStream(thumbnailPath));
 
   return formData;
 };
