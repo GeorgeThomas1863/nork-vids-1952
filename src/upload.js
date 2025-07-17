@@ -119,31 +119,17 @@ export const uploadVidChunk = async (inputObj) => {
       chunkParams.chunkNumber = i + 1; //THIS WILL BREAK THINGS
 
       console.log("++++++++++++++++++++++++");
-      console.log(`NEW CHUNK! START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${i}`);
-
-      // const start = i * uploadChunkSize;
-      // const end = Math.min(vidSizeBytes, start + uploadChunkSize);
-
-      //build chunk params
-      // const chunkParams = {
-      //   chunkStart: start,
-      //   chunkEnd: end,
-      //   chunkNumber: i,
-      //   uploadChunks: uploadChunks,
-      //   savePath: savePath,
-      //   tgUploadId: tgUploadId,
-      //   thumbnailPath: thumbnailPath,
-      // };
+      console.log(`NEW CHUNK! CHUNK START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${chunkParams.chunkNumber}`);
 
       console.log("CHUNK PARAMS");
       console.log(chunkParams);
 
       const chunkForm = await buildChunkForm(chunkParams);
 
-      // const chunkPostData = await tgPostVidReq({ form: chunkForm });
-      // if (!chunkPostData) continue;
+      const chunkPostData = await tgPostVidReq({ form: chunkForm });
+      if (!chunkPostData) continue;
 
-      // chunkDataArray.push(chunkPostData);
+      chunkDataArray.push(chunkPostData);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
@@ -184,6 +170,20 @@ export const buildChunkForm = async (inputObj) => {
 
   return formData;
 };
+
+// const start = i * uploadChunkSize;
+// const end = Math.min(vidSizeBytes, start + uploadChunkSize);
+
+//build chunk params
+// const chunkParams = {
+//   chunkStart: start,
+//   chunkEnd: end,
+//   chunkNumber: i,
+//   uploadChunks: uploadChunks,
+//   savePath: savePath,
+//   tgUploadId: tgUploadId,
+//   thumbnailPath: thumbnailPath,
+// };s
 
 //PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
 
