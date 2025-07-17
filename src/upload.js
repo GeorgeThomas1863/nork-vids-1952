@@ -115,12 +115,13 @@ export const uploadVidChunk = async (inputObj) => {
       //define chunk start end
       chunkParams.chunkStart = i * uploadChunkSize;
       chunkParams.chunkEnd = Math.min(vidSizeBytes, chunkParams.chunkStart + uploadChunkSize);
-      chunkParams.chunkNumber = i;
+      chunkParams.chunkLength = chunkParams.chunkEnd - chunkParams.chunkStart;
+      chunkParams.chunkNumber = i + 1; //THIS WILL BREAK THINGS
+
+      console.log(`CHUNK START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${i}`);
 
       // const start = i * uploadChunkSize;
       // const end = Math.min(vidSizeBytes, start + uploadChunkSize);
-
-      console.log(`CHUNK START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${i}`);
 
       //build chunk params
       // const chunkParams = {
@@ -152,35 +153,35 @@ export const uploadVidChunk = async (inputObj) => {
 };
 
 export const buildChunkForm = async (inputObj) => {
-  const { savePath, tgUploadId, thumbnailPath, chunkStart, chunkEnd, chunkNumber, uploadChunks } = inputObj;
+  const { savePath, tgUploadId, thumbnailPath, chunkStart, chunkEnd, chunkLength, chunkNumber, uploadChunks } = inputObj;
 
   console.log("BUILD CHUNK FORM!!!!!!");
   console.log(inputObj);
   console.log("--------------------------------");
 
-  // const readStream = fs.createReadStream(savePath, { start: chunkStart, end: chunkEnd - 1 });
+  const readStream = fs.createReadStream(savePath, { start: chunkStart, end: chunkEnd - 1 });
 
-  // // Create form data for this chunk
-  // const formData = new FormData();
-  // formData.append("chat_id", tgUploadId);
-  // formData.append("video", readStream, {
-  //   filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
-  //   knownLength: chunkEnd - chunkStart,
-  // });
+  // Create form data for this chunk
+  const formData = new FormData();
+  formData.append("chat_id", tgUploadId);
+  formData.append("video", readStream, {
+    filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
+    knownLength: chunkLength,
+  });
 
-  // console.log(`UPLOADING CHUNK ${chunkNumber + 1} of ${uploadChunks}`);
-  // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
-  // console.log("--------------------------------");
+  console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
+  console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
+  console.log("--------------------------------");
 
-  // //set setting for auto play / streaming
-  // formData.append("supports_streaming", "true");
-  // formData.append("width", "1280");
-  // formData.append("height", "720");
+  //set setting for auto play / streaming
+  formData.append("supports_streaming", "true");
+  formData.append("width", "1280");
+  formData.append("height", "720");
 
-  // //add thumbnail
-  // formData.append("thumb", fs.createReadStream(thumbnailPath));
+  //add thumbnail
+  formData.append("thumb", fs.createReadStream(thumbnailPath));
 
-  // return formData;
+  return formData;
 };
 
 //PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
