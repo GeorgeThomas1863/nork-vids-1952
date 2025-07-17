@@ -85,7 +85,7 @@ export const uploadVidPicItem = async (inputObj) => {
   //upload vid
   const vidParams = {
     thumbnailPath: thumbnailSavePath,
-    chunkSize: uploadChunkSize,
+    uploadChunkSize: uploadChunkSize,
     vidSizeBytes: vidSizeBytes,
     uploadChunks: uploadChunks,
     vidId: itemId,
@@ -130,10 +130,10 @@ export const uploadVidPicItem = async (inputObj) => {
 
 export const uploadVidFS = async (inputObj) => {
   if (!inputObj) return null;
-  const { thumbnailPath, chunkSize, uploadChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
+  const { thumbnailPath, uploadChunkSize, uploadChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
 
   console.log("upload VIDFS CHUNK SIZE");
-  console.log(chunkSize);
+  console.log(uploadChunkSize);
   console.log("--------------------------------");
 
   const chunkDataArray = [];
@@ -141,8 +141,8 @@ export const uploadVidFS = async (inputObj) => {
     if (!scrapeState.scrapeActive) return null;
     try {
       //define chunk start end
-      const start = i * chunkSize;
-      const end = Math.min(vidSizeBytes, start + chunkSize);
+      const start = i * uploadChunkSize;
+      const end = Math.min(vidSizeBytes, start + uploadChunkSize);
 
       console.log(`CHUNK START: ${start} | CHUNK END: ${end} | CHUNK NUMBER: ${i}`);
 
