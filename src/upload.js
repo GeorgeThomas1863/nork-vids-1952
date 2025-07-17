@@ -34,7 +34,7 @@ export const uploadVidArray = async (inputArray) => {
       // console.log("UPLOAD VID ARRAY ITEM");
       // console.log(inputArray[i]);
       // console.log("--------------------------------");
-      const vidDataObj = await uploadVidPicItem(inputArray[i]);
+      const vidDataObj = await uploadVidFS(inputArray[i]);
       if (!vidDataObj) continue;
 
       uploadDataArray.push(vidDataObj);
@@ -48,10 +48,10 @@ export const uploadVidArray = async (inputArray) => {
 };
 
 //uploads thumbnail and vid SEPARATELY (might want to change)
-export const uploadVidPicItem = async (inputObj) => {
+export const uploadVidFS = async (inputObj) => {
   if (!inputObj) return null;
   const { thumbnailSavePath, vidSavePath, date, itemId, vidData } = inputObj;
-  const { vidSizeBytes, vidSizeMB} = vidData;
+  const { vidSizeBytes, vidSizeMB } = vidData;
   const { uploadChunkSize, tgUploadId } = CONFIG;
 
   // console.log("UPLOAD CHUNK SIZE");
@@ -60,32 +60,34 @@ export const uploadVidPicItem = async (inputObj) => {
 
   const uploadChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
 
-  console.log("UPLOAD CHUNKS");
-  console.log(uploadChunks);
-  console.log(vidSizeMB + "MB");
-  console.log("--------------------------------");
+  // console.log("UPLOAD CHUNKS");
+  // console.log(uploadChunks);
+  // console.log(vidSizeMB + "MB");
+  // console.log("--------------------------------");
 
-  //check if vid and thumbnail downloaded
+  //check if vid downloaded
   // if (!fs.existsSync(thumbnailSavePath) || !fs.existsSync(vidSavePath)) {
-  //   const error = new Error("Vid or thumbnail NOT downloaded");
-  //   error.function = "uploadVidFS";
-  //   error.content = inputObj;
-  //   throw error;
-  // }
-
-  // const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+  if (!fs.existsSync(vidSavePath)) {
+    const error = new Error("VidNOT downloaded");
+    error.function = "uploadVidFS";
+    error.content = inputObj;
+    throw error;
+  }
 
   // //upload vid
-  // const vidParams = {
-  //   thumbnailPath: thumbnailSavePath,
-  //   uploadChunkSize: uploadChunkSize,
-  //   vidSizeBytes: vidSizeBytes,
-  //   uploadChunks: uploadChunks,
-  //   vidId: itemId,
-  //   savePath: vidSavePath,
-  //   dateNormal: dateNormal,
-  //   tgUploadId: tgUploadId,
-  // };
+  const vidParams = {
+    thumbnailPath: thumbnailSavePath,
+    uploadChunkSize: uploadChunkSize,
+    vidSizeBytes: vidSizeBytes,
+    uploadChunks: uploadChunks,
+    vidId: itemId,
+    savePath: vidSavePath,
+    tgUploadId: tgUploadId,
+  };
+
+  console.log("VID PARAMS");
+  console.log(vidParams);
+  console.log("--------------------------------");
 
   // const vidUploadData = await uploadVidFS(vidParams);
   // console.log("VID UPLOAD DATA");
@@ -98,6 +100,8 @@ export const uploadVidPicItem = async (inputObj) => {
 //PIC UPLOAD WORKS BUT SKIPPING BC UNNECESSARY [reformat later]
 
 //make an item NORMAL here (for label)
+
+// const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 
 // //upload thumbnail
 // const picParams = {
@@ -140,7 +144,7 @@ export const uploadVidPicItem = async (inputObj) => {
 //   return editCaptionData;
 // };
 
-export const uploadVidFS = async (inputObj) => {
+export const uploadVidChunk = async (inputObj) => {
   if (!inputObj) return null;
   const { thumbnailPath, uploadChunkSize, uploadChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
 
