@@ -182,6 +182,10 @@ export const uploadVidFS = async (inputObj) => {
 export const buildChunkForm = async (inputObj) => {
   const { savePath, tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
 
+  console.log("BUILD CHUNK FORM!!!!!!");
+  console.log(inputObj);
+  console.log("--------------------------------");
+
   const readStream = fs.createReadStream(savePath, { start: start, end: end - 1 });
 
   // Create form data for this chunk
