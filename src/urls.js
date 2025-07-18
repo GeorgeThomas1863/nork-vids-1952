@@ -58,21 +58,27 @@ export const getArticleObj = async (article) => {
   if (!article) return null;
   const { kcnaWatchList } = CONFIG;
 
-  //throws errors on fail
-  const broadcastHeadText = await getBroadcastHead(article);
+  //throw errors on fail
+  const vidType = await getVidType(article);
   const linkElement = await getLinkElement(article);
   const dateObj = await getDateObj(article);
+
+  const titleText = linkElement.textContent.trim();
   const baseURL = "https://kcnawatch.org";
+
+  //build vid name here from other inputs
+  const vidName = await buildVidName(vidType, dateObj);
 
   const articleObj = {
     url: baseURL + linkElement.href,
-    title: linkElement.textContent.trim(),
+    title: titleText,
     date: dateObj,
-    type: broadcastHeadText,
+    type: vidType,
+    vidName: vidName,
   };
 
-  // console.log("ARTICLE OBJ");
-  // console.log(articleObj);
+  console.log("ARTICLE OBJ");
+  console.log(articleObj);
 
   //store it
   const storeModel = new dbModel(articleObj, kcnaWatchList);
@@ -83,7 +89,7 @@ export const getArticleObj = async (article) => {
   return articleObj;
 };
 
-export const getBroadcastHead = async (article) => {
+export const getVidType = async (article) => {
   const broadcastHead = article.querySelector(".broadcast-head");
   if (!broadcastHead || !broadcastHead.textContent) {
     const error = new Error("CANT EXTRACT BROADCAST HEAD FROM ARTICLE");
@@ -128,6 +134,23 @@ export const getDateObj = async (article) => {
   dateObj.setMinutes(scrapeMinute);
 
   return dateObj;
+};
+
+export const buildVidName = async (type, date) => {
+  if (!type || !date) return null;
+
+  const dateNormal = date
+    .toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replace(/\//g, "");
+
+  const typeNormal = type.slice(0, type.indexOf(" ")).toUpperCase();
+
+  const vidName = `${typeNormal}_${dateNormal}`;
+  return vidName;
 };
 
 //------------------------------------
