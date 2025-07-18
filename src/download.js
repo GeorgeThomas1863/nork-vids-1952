@@ -180,12 +180,12 @@ export const downloadNewVidArray = async () => {
 export const downloadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
   const { tempPath, watchPath } = CONFIG;
-  const { vidURL, vidData } = inputObj;
+  const { vidURL, vidData, vidName } = inputObj;
   const { vidSizeBytes, downloadChunks } = vidData;
 
-  const nameStart = vidURL.lastIndexOf("/");
-  const nameEnd = vidURL.lastIndexOf(".");
-  const vidName = vidURL.substring(nameStart + 1, nameEnd);
+  // const nameStart = vidURL.lastIndexOf("/");
+  // const nameEnd = vidURL.lastIndexOf(".");
+  // const vidName = vidURL.substring(nameStart + 1, nameEnd);
 
   const savePath = `${watchPath}${vidName}.mp4`;
 
@@ -213,20 +213,20 @@ export const downloadVidFS = async (inputObj) => {
 
 export const downloadThumbnailFS = async (inputObj) => {
   if (!inputObj || !inputObj.thumbnail) return null;
-  const { thumbnail } = inputObj;
+  const { thumbnail, vidName } = inputObj;
   const { watchPath } = CONFIG;
 
-  const nameStart = thumbnail.lastIndexOf("/");
-  const nameEnd = thumbnail.lastIndexOf(".");
-  const picName = thumbnail.substring(nameStart + 1, nameEnd);
+  // const nameStart = thumbnail.lastIndexOf("/");
+  // const nameEnd = thumbnail.lastIndexOf(".");
+  // const picName = thumbnail.substring(nameStart + 1, nameEnd);
 
-  const savePath = `${watchPath}${picName}.jpg`;
+  const savePath = `${watchPath}${vidName}.jpg`;
 
   //build params
   const params = {
     url: thumbnail,
     savePath: savePath,
-    picId: picName,
+    picId: vidName,
   };
 
   // console.log("PIC PARAMS");
@@ -240,7 +240,6 @@ export const downloadThumbnailFS = async (inputObj) => {
     thumbnailDownloaded: true,
     thumbnailSavePath: picObj.savePath,
     thumbnailDownloadedSize: picObj.downloadedSize,
-    itemId: picObj.picId,
   };
 
   return returnObj;
