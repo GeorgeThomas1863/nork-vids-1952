@@ -53,51 +53,12 @@ export const uploadVidItem = async (inputObj) => {
   const { thumbnailSavePath, vidSavePath, vidData, vidName } = inputObj;
   const { tgUploadId } = CONFIG;
 
-  //upload thumbnail
-  const picParams = {
-    picId: vidName,
-    savePath: thumbnailSavePath,
-    tgUploadId: tgUploadId,
-  };
-
-  const uploadPicData = await uploadPicFS(picParams);
-  console.log("PIC UPLOAD DATA");
-  console.log(uploadPicData);
+  //send title message
+  console.log("UPLOADING VID ITEM");
+  console.log(inputObj);
   console.log("--------------------------------");
 
-  if (!uploadPicData) return null;
-
-  return uploadPicData;
-
   //edit thumbnail caption with vid title
-
-  
-};
-
-export const uploadPicFS = async (inputObj) => {
-  const { picId, savePath, tgUploadId } = inputObj;
-
-  //build pic params
-  const picParams = {
-    chatId: tgUploadId,
-    picPath: savePath,
-  };
-
-  const picData = await tgPostPicFS(picParams);
-  if (!picData || !picData.result) return null;
-
-  // build caption
-  const caption = await buildCaptionText(inputObj, "pic");
-
-  //build edit caption params
-  const editParams = {
-    editChannelId: picData.result.chat.id,
-    messageId: picData.result.message_id,
-    caption: caption,
-  };
-
-  const editCaptionData = await tgEditMessageCaption(editParams);
-  return editCaptionData;
 };
 
 export const buildCaptionText = async (inputObj, captionType = "pic") => {
@@ -249,6 +210,51 @@ export const buildChunkForm = async (inputObj) => {
 
   return formData;
 };
+
+//  //upload thumbnail
+//  const picParams = {
+//   picId: vidName,
+//   savePath: thumbnailSavePath,
+//   tgUploadId: tgUploadId,
+// };
+
+// const uploadPicData = await uploadPicFS(picParams);
+// console.log("PIC UPLOAD DATA");
+// console.log(uploadPicData);
+// console.log("--------------------------------");
+
+// if (!uploadPicData) return null;
+
+// return uploadPicData;
+
+// //WORKS BUT THUMBNAIL LOOKS LIKE SHIT
+// export const uploadPicFS = async (inputObj) => {
+// const { picId, savePath, tgUploadId } = inputObj;
+
+// //build pic params
+// const picParams = {
+//   chatId: tgUploadId,
+//   picPath: savePath,
+// };
+
+// const picData = await tgPostPicFS(picParams);
+// if (!picData || !picData.result) return null;
+
+// // build caption
+// const caption = await buildCaptionText(inputObj, "pic");
+
+// //build edit caption params
+// const editParams = {
+//   editChannelId: picData.result.chat.id,
+//   messageId: picData.result.message_id,
+//   caption: caption,
+// };
+
+// const editCaptionData = await tgEditMessageCaption(editParams);
+// return editCaptionData;
+// };
+
+//--------------------
 
 // const start = i * uploadChunkSize;
 // const end = Math.min(vidSizeBytes, start + uploadChunkSize);
