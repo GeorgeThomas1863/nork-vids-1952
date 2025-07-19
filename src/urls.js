@@ -149,7 +149,7 @@ export const buildVidName = async (type, date) => {
 
   const typeNormal = type.slice(0, type.indexOf(" ")).toUpperCase();
 
-  const vidName = `${typeNormal}_${dateNormal}`;
+  const vidName = `${dateNormal}_${typeNormal}`;
   return vidName;
 };
 
