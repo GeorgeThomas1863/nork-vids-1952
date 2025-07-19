@@ -15,6 +15,7 @@ export const tgSendMessage = async (inputParams) => {
   const params = {
     chat_id: chatId,
     text: text,
+    parse_mode: "HTML",
   };
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;

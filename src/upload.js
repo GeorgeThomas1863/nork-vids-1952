@@ -55,16 +55,15 @@ export const uploadVidItem = async (inputObj) => {
 
   //send title as MESSAGE first (thumbnail looks terrible)
   const titleCaption = await buildCaptionText(inputObj, "title");
-  
+
   const titleParams = {
-    chat_id: tgUploadId,
+    chatId: tgUploadId,
     text: titleCaption,
-    parse_mode: "HTML",
   };
 
-  console.log("TITLE PARAMS");
-  console.log(titleParams);
-  console.log("--------------------------------");
+  // console.log("TITLE PARAMS");
+  // console.log(titleParams);
+  // console.log("--------------------------------");
 
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
