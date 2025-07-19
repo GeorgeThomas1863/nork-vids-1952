@@ -183,10 +183,6 @@ export const downloadVidFS = async (inputObj) => {
   const { vidURL, vidData, vidName } = inputObj;
   const { vidSizeBytes, downloadChunks } = vidData;
 
-  // const nameStart = vidURL.lastIndexOf("/");
-  // const nameEnd = vidURL.lastIndexOf(".");
-  // const vidName = vidURL.substring(nameStart + 1, nameEnd);
-
   const savePath = `${watchPath}${vidName}.mp4`;
 
   const params = {

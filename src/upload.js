@@ -1,4 +1,5 @@
 import fs from "fs";
+import fsPromises from "fs/promises";
 import FormData from "form-data";
 
 import CONFIG from "../config/config.js";
@@ -53,6 +54,14 @@ export const uploadVidItem = async (inputObj) => {
   const { thumbnailSavePath, vidSavePath, vidData, vidName } = inputObj;
   const { tgUploadId } = CONFIG;
 
+  //check first if vid exists
+  if (!fs.existsSync(vidSavePath)) {
+    const error = new Error("VID NOT DOWNLOADED");
+    error.function = "uploadVidItem";
+    error.content = inputObj;
+    throw error;
+  }
+
   //send title as MESSAGE first (thumbnail looks terrible)
   const titleCaption = await buildCaptionText(inputObj, "title");
 
@@ -61,20 +70,75 @@ export const uploadVidItem = async (inputObj) => {
     text: titleCaption,
   };
 
-  // console.log("TITLE PARAMS");
-  // console.log(titleParams);
-  // console.log("--------------------------------");
-
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
 
-  console.log("TITLE DATA");
-  console.log(titleData);
-  console.log("--------------------------------");
+  //now upload vids
+  const chunkArray = await chunkVid(inputObj);
+};
 
-  //build pic params
+export const chunkVid = async (inputObj) => {
+  if (!inputObj || !inputObj.vidSavePath) return null;
+  const { vidSavePath, vidData, vidName } = inputObj;
+  const { vidSizeBytes, vidSizeMB } = vidData;
+  const { uploadChunkSize, tempPath } = CONFIG;  
 
-  //edit thumbnail caption with vid title
+  const tempVidPath = tempPath + vidName 
+  const totalChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
+
+  //if vid is smaller than chunk size, return inputObj
+  if (uploadChunkSize > vidSizeBytes) return [inputObj];
+
+  //open the vid
+  const vidFile = await fsPromises.open(vidSavePath, "r");
+  if (!vidFile) return null;
+
+  for (let i = 0; i < totalChunks; i++) {
+    const chunkPath = `${tempVidPath}_chunk_${i + 1}.mp4`;
+    const chunkStart = i * uploadChunkSize;
+    const chunkEnd = (i + 1) * uploadChunkSize;
+
+    const outputFile = await fsPromises.open(chunkPath, "w");
+
+    const buffer = Buffer.alloc(64 * 1024); //some shit from claude, double check
+    const readCount = Math.ceil(uploadChunkSize / buffer.length);
+
+    for (let j = 0; j < readCount; j++) {
+      const bytesRead = await vidFile.read(buffer, 0, buffer.length, chunkStart + j * buffer.length);
+      if (bytesRead === 0) break;
+      await outputFile.write(buffer, 0, bytesRead);
+    }
+
+    const { bytesRead } = await sourceHandle.read(
+      buffer, 
+      0, 
+      toRead, 
+      startPosition + bytesWritten
+    );
+    
+    if (bytesRead === 0) break;
+    
+    await destHandle.write(buffer, 0, bytesRead);
+    bytesWritten += bytesRead;
+
+
+    
+    const chunkObj = {
+      vidName: vidName,
+      vidSavePath: vidSavePath,
+    }
+  }
+
+
+
+
+ 
+
+
+  
+
+  //chunk vid
+
 };
 
 export const buildCaptionText = async (inputObj, captionType = "title") => {
