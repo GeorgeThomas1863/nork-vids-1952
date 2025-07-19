@@ -54,6 +54,13 @@ export const tgEditMessageCaption = async (inputParams) => {
 export const tgPostReq = async (url, params) => {
   if (!url || !params) return null;
 
+  console.log("PARAMS");
+  console.log(params);
+  console.log("--------------------------------");
+  console.log("URL");
+  console.log(url);
+  console.log("--------------------------------");
+
   try {
     const res = await axios.post(url, params);
     return res.data;
