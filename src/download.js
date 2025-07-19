@@ -1,3 +1,4 @@
+import fs from "fs";
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
 import dbModel from "../models/db-model.js";
@@ -186,6 +187,12 @@ export const downloadVidFS = async (inputObj) => {
   //define vid save DIRECTORY
   const vidSavePath = `${watchPath}${vidName}_chunks/`;
 
+  // Create the sub folder for DIRECTORY
+  if (!fs.existsSync(vidSavePath)) {
+    fs.mkdirSync(vidSavePath, { recursive: true });
+  }
+
+  //build params
   const params = {
     url: vidURL,
     downloadChunks: downloadChunks,
