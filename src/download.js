@@ -183,15 +183,14 @@ export const downloadVidFS = async (inputObj) => {
   const { vidURL, vidData, vidName } = inputObj;
   const { vidSizeBytes, downloadChunks } = vidData;
 
-  // const savePath = `${watchPath}${vidName}.mp4`;
+  //define vid save DIRECTORY
+  const vidSavePath = `${watchPath}${vidName}_chunks/`;
 
   const params = {
     url: vidURL,
-    // savePath: savePath,
-    // vidTempPath: tempPath,
     downloadChunks: downloadChunks,
     vidSizeBytes: vidSizeBytes,
-    vidFolderPath: watchPath,
+    vidSavePath: vidSavePath,
     vidName: vidName,
   };
 
@@ -202,7 +201,7 @@ export const downloadVidFS = async (inputObj) => {
   //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
   const returnObj = {
     vidDownloaded: true,
-    vidSavePath: vidObj.savePath,
+    vidSavePath: vidSavePath,
     chunksProcessed: vidObj.chunksProcessed,
   };
 

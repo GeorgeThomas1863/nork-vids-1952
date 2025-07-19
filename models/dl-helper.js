@@ -17,11 +17,11 @@ class DLHelper {
   //UTIL for multi thread vid download
 
   async getCompletedVidChunks() {
-    const { vidFolderPath, vidName, downloadChunks, vidSizeBytes } = this.dataObject;
+    const { vidSavePath, downloadChunks, vidSizeBytes } = this.dataObject;
     const { vidChunkSize } = CONFIG;
 
     // Make sure we have all required properties
-    if (!vidFolderPath || !downloadChunks || !vidSizeBytes) {
+    if (!vidSavePath || !downloadChunks || !vidSizeBytes) {
       console.log("Error: Missing required properties for getCompletedVidChunks");
       return [];
     }
@@ -29,7 +29,7 @@ class DLHelper {
     //check chunks, delete partial, return array of completed chunks
     const completedChunkArray = [];
     for (let i = 0; i < downloadChunks; i++) {
-      const savePath = `${vidFolderPath}${vidName}_chunk_${i + 1}.mp4`;
+      const savePath = `${vidSavePath}chunk_${i + 1}.mp4`;
       const expectedSize = i < downloadChunks - 1 ? vidChunkSize : vidSizeBytes - i * vidChunkSize;
 
       if (fs.existsSync(savePath)) {
@@ -146,11 +146,11 @@ class DLHelper {
   }
 
   async downloadVidChunk() {
-    const { url, vidFolderPath, vidName, chunkIndex, start, end } = this.dataObject;
+    const { url, vidSavePath, vidName, chunkIndex, start, end } = this.dataObject;
     const { vidRetries } = CONFIG;
 
     // Make sure we have all required properties
-    if (!url || !vidFolderPath || chunkIndex === undefined || start === undefined || end === undefined) {
+    if (!url || !vidSavePath || chunkIndex === undefined || start === undefined || end === undefined) {
       console.log("Error: Missing required properties for downloadVidChunk");
       return null;
     }
@@ -166,7 +166,7 @@ class DLHelper {
         });
 
         // Write chunk to temporary file
-        const savePath = `${vidFolderPath}${vidName}_chunk_${chunkIndex + 1}.mp4`;
+        const savePath = `${vidSavePath}chunk_${chunkIndex + 1}.mp4`;
         fs.writeFileSync(savePath, Buffer.from(res.data));
 
         console.log(`Chunk ${chunkIndex} downloaded (bytes ${start}-${end})`);
@@ -174,7 +174,6 @@ class DLHelper {
         //obv put into obj
         const returnObj = {
           chunkIndex: chunkIndex,
-          savePath: savePath,
           start: start,
           end: end,
         };
