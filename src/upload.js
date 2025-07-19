@@ -117,8 +117,8 @@ export const uploadVidChunk = async (inputObj) => {
       const start = i * uploadChunkSize;
       const end = Math.min(vidSizeBytes, start + uploadChunkSize);
 
-      chunkObj.chunkStart = start;
-      chunkObj.chunkEnd = end;
+      chunkObj.start = start;
+      chunkObj.end = end;
       chunkObj.chunkNumber = i; //THIS WILL BREAK THINGS
 
       // chunkParams.chunkStart = i * uploadChunkSize;
