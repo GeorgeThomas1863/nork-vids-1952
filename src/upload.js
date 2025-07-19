@@ -33,13 +33,10 @@ export const uploadVidArray = async (inputArray) => {
   for (let i = 0; i < 1; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      // console.log("UPLOAD VID ARRAY ITEM");
-      // console.log(inputArray[i]);
-      // console.log("--------------------------------");
-      const vidDataObj = await uploadVidItem(inputArray[i]);
-      if (!vidDataObj) continue;
-
-      uploadDataArray.push(vidDataObj);
+      //TURN BACK ON
+      // const vidDataObj = await uploadVidItem(inputArray[i]);
+      // if (!vidDataObj) continue;
+      // uploadDataArray.push(vidDataObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
@@ -81,9 +78,9 @@ export const chunkVid = async (inputObj) => {
   if (!inputObj || !inputObj.vidSavePath) return null;
   const { vidSavePath, vidData, vidName } = inputObj;
   const { vidSizeBytes, vidSizeMB } = vidData;
-  const { uploadChunkSize, tempPath } = CONFIG;  
+  const { uploadChunkSize, tempPath } = CONFIG;
 
-  const tempVidPath = tempPath + vidName 
+  const tempVidPath = tempPath + vidName;
   const totalChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
 
   //if vid is smaller than chunk size, return inputObj
@@ -109,36 +106,20 @@ export const chunkVid = async (inputObj) => {
       await outputFile.write(buffer, 0, bytesRead);
     }
 
-    const { bytesRead } = await sourceHandle.read(
-      buffer, 
-      0, 
-      toRead, 
-      startPosition + bytesWritten
-    );
-    
+    const { bytesRead } = await sourceHandle.read(buffer, 0, toRead, startPosition + bytesWritten);
+
     if (bytesRead === 0) break;
-    
+
     await destHandle.write(buffer, 0, bytesRead);
     bytesWritten += bytesRead;
 
-
-    
     const chunkObj = {
       vidName: vidName,
       vidSavePath: vidSavePath,
-    }
+    };
   }
 
-
-
-
- 
-
-
-  
-
   //chunk vid
-
 };
 
 export const buildCaptionText = async (inputObj, captionType = "title") => {
