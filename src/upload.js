@@ -50,17 +50,13 @@ export const uploadVidArray = async (inputArray) => {
 
 export const uploadVidItem = async (inputObj) => {
   if (!inputObj || !inputObj.thumbnailSavePath || !inputObj.vidSavePath) return null;
-  const { thumbnailSavePath, vidSavePath, date, vidData, vidName } = inputObj;
+  const { thumbnailSavePath, vidSavePath, vidData, vidName } = inputObj;
   const { tgUploadId } = CONFIG;
-
-  //upload thumbnail FIRST
-  const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 
   //upload thumbnail
   const picParams = {
     picId: vidName,
     savePath: thumbnailSavePath,
-    dateNormal: dateNormal,
     tgUploadId: tgUploadId,
   };
 
@@ -71,11 +67,15 @@ export const uploadVidItem = async (inputObj) => {
 
   if (!uploadPicData) return null;
 
+  return uploadPicData;
+
   //edit thumbnail caption with vid title
+
+  
 };
 
 export const uploadPicFS = async (inputObj) => {
-  const { picId, savePath, dateNormal, tgUploadId } = inputObj;
+  const { picId, savePath, tgUploadId } = inputObj;
 
   //build pic params
   const picParams = {
@@ -84,22 +84,39 @@ export const uploadPicFS = async (inputObj) => {
   };
 
   const picData = await tgPostPicFS(picParams);
-  if (!picData) return null;
+  if (!picData || !picData.result) return null;
 
-  return picData;
+  // build caption
+  const caption = await buildCaptionText(inputObj, "pic");
 
-  //build caption
-  // const caption = "<b>PIC: " + picId + ".jpg</b>" + "\n" + "<i>" + dateNormal + "</i>";
+  //build edit caption params
+  const editParams = {
+    editChannelId: picData.result.chat.id,
+    messageId: picData.result.message_id,
+    caption: caption,
+  };
 
-  // //build edit caption params
-  // const editParams = {
-  //   editChannelId: picData.result.chat.id,
-  //   messageId: picData.result.message_id,
-  //   caption: caption,
-  // };
+  const editCaptionData = await tgEditMessageCaption(editParams);
+  return editCaptionData;
+};
 
-  // const editCaptionData = await tgEditMessageCaption(editParams);
-  // return editCaptionData;
+export const buildCaptionText = async (inputObj, captionType = "pic") => {
+  if (!inputObj || !captionType) return null;
+  const { date, type, title } = inputObj;
+
+  let captionText = "";
+  switch (captionType) {
+    case "pic":
+      const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+      const titleNormal = `<b>${title} ${type}</b>`;
+
+      const firstStr = "🇰🇵 🇰🇵 🇰🇵" + "\n\n";
+      captionText = `${firstStr}--------------\n\n${titleNormal}\n<i>${dateNormal}</i>\n\n--------------`;
+      return captionText;
+
+    case "vid":
+      break;
+  }
 };
 
 //uploads thumbnail and vid SEPARATELY (might want to change)
