@@ -179,18 +179,20 @@ export const downloadNewVidArray = async () => {
 
 export const downloadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
-  const { tempPath, watchPath } = CONFIG;
+  const { watchPath } = CONFIG;
   const { vidURL, vidData, vidName } = inputObj;
   const { vidSizeBytes, downloadChunks } = vidData;
 
-  const savePath = `${watchPath}${vidName}.mp4`;
+  // const savePath = `${watchPath}${vidName}.mp4`;
 
   const params = {
     url: vidURL,
-    savePath: savePath,
-    vidTempPath: tempPath,
+    // savePath: savePath,
+    // vidTempPath: tempPath,
     downloadChunks: downloadChunks,
     vidSizeBytes: vidSizeBytes,
+    vidFolderPath: watchPath,
+    vidName: vidName,
   };
 
   const vidModel = new KCNA(params);
