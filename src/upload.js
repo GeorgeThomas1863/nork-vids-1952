@@ -86,6 +86,8 @@ export const uploadPicFS = async (inputObj) => {
   const picData = await tgPostPicFS(picParams);
   if (!picData) return null;
 
+  return picData;
+
   //build caption
   // const caption = "<b>PIC: " + picId + ".jpg</b>" + "\n" + "<i>" + dateNormal + "</i>";
 
