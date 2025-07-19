@@ -4,7 +4,7 @@ import FormData from "form-data";
 import CONFIG from "../config/config.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
-import { tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from "./tg-api.js";
+import { tgSendMessage, tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from "./tg-api.js";
 
 export const uploadNewVids = async () => {
   const { kcnaWatchDownloaded, kcnaWatchUploaded } = CONFIG;
@@ -53,26 +53,44 @@ export const uploadVidItem = async (inputObj) => {
   const { thumbnailSavePath, vidSavePath, vidData, vidName } = inputObj;
   const { tgUploadId } = CONFIG;
 
-  //send title message
-  console.log("UPLOADING VID ITEM");
-  console.log(inputObj);
+  //send title as MESSAGE first (thumbnail looks terrible)
+  const titleCaption = await buildCaptionText(inputObj, "title");
+  
+  const titleParams = {
+    chat_id: tgUploadId,
+    text: titleCaption,
+    parse_mode: "HTML",
+  };
+
+  const titleData = await tgSendMessage(titleParams);
+  if (!titleData || !titleData.result) return null;
+
+  console.log("TITLE DATA");
+  console.log(titleData);
   console.log("--------------------------------");
+
+  //build pic params
 
   //edit thumbnail caption with vid title
 };
 
-export const buildCaptionText = async (inputObj, captionType = "pic") => {
+export const buildCaptionText = async (inputObj, captionType = "title") => {
   if (!inputObj || !captionType) return null;
   const { date, type, title } = inputObj;
 
+  const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+  const titleNormal = `<b>${title} ${type}</b>`;
+
   let captionText = "";
   switch (captionType) {
-    case "pic":
-      const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
-      const titleNormal = `<b>${title} ${type}</b>`;
+    case "title":
+      const titleStr = "🇰🇵 🇰🇵 🇰🇵" + "\n\n";
+      captionText = `${titleStr}--------------\n\n${titleNormal}\n<i>${dateNormal}</i>\n\n--------------`;
+      return captionText;
 
-      const firstStr = "🇰🇵 🇰🇵 🇰🇵" + "\n\n";
-      captionText = `${firstStr}--------------\n\n${titleNormal}\n<i>${dateNormal}</i>\n\n--------------`;
+    case "pic":
+      const picTitleStr = "🇰🇵 🇰🇵 🇰🇵" + "\n\n";
+      captionText = `${picTitleStr}--------------\n\n${titleNormal}\n<i>${dateNormal}</i>\n\n--------------`;
       return captionText;
 
     case "vid":

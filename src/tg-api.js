@@ -8,6 +8,27 @@ let tokenIndex = 0;
 
 //--------------------------------
 
+export const tgSendMessage = async (inputParams) => {
+  const { chatId, text } = inputParams;
+  const token = tokenArray[tokenIndex];
+
+  const params = {
+    chat_id: chatId,
+    text: text,
+  };
+
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const data = await tgPostReq(url, params);
+
+  const checkData = await checkToken(data);
+
+  //try again
+  if (!checkData) return await tgSendMessage(inputParams);
+
+  return data;
+};
+
+
 export const tgEditMessageCaption = async (inputParams) => {
   const { editChannelId, messageId, caption } = inputParams;
   const token = tokenArray[tokenIndex];
