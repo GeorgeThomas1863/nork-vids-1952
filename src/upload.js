@@ -87,8 +87,8 @@ export const buildCaptionText = async (inputObj, captionType = "title") => {
   let captionText = "";
   switch (captionType) {
     case "title":
-      const titleStr = "🇰🇵 🇰🇵 🇰🇵" + "\n\n";
-      captionText = `${titleStr}--------------\n\n${titleNormal}\n<i>${dateNormal}</i>\n\n--------------`;
+      const titleStr = "🇰🇵 🇰🇵 🇰🇵";
+      captionText = `--------------\n\n${titleStr} ${titleNormal} ${titleStr}\n\n--------------`;
       return captionText;
 
     case "pic":
