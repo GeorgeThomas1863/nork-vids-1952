@@ -35,7 +35,7 @@ export const uploadVidArray = async (inputArray) => {
       // console.log("UPLOAD VID ARRAY ITEM");
       // console.log(inputArray[i]);
       // console.log("--------------------------------");
-      const vidDataObj = await uploadVidFS(inputArray[i]);
+      const vidDataObj = await uploadVidItem(inputArray[i]);
       if (!vidDataObj) continue;
 
       uploadDataArray.push(vidDataObj);
@@ -46,6 +46,58 @@ export const uploadVidArray = async (inputArray) => {
   }
 
   return uploadDataArray;
+};
+
+export const uploadVidItem = async (inputObj) => {
+  if (!inputObj || !inputObj.thumbnailSavePath || !inputObj.vidSavePath) return null;
+  const { thumbnailSavePath, vidSavePath, date, vidData, vidName } = inputObj;
+  const { tgUploadId } = CONFIG;
+
+  //upload thumbnail FIRST
+  const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+
+  //upload thumbnail
+  const picParams = {
+    picId: vidName,
+    savePath: thumbnailSavePath,
+    dateNormal: dateNormal,
+    tgUploadId: tgUploadId,
+  };
+
+  const uploadPicData = await uploadPicFS(picParams);
+  console.log("PIC UPLOAD DATA");
+  console.log(uploadPicData);
+  console.log("--------------------------------");
+
+  if (!uploadPicData) return null;
+
+  //edit thumbnail caption with vid title
+};
+
+export const uploadPicFS = async (inputObj) => {
+  const { picId, savePath, dateNormal, tgUploadId } = inputObj;
+
+  //build pic params
+  const picParams = {
+    chatId: tgUploadId,
+    picPath: savePath,
+  };
+
+  const picData = await tgPostPicFS(picParams);
+  if (!picData) return null;
+
+  //build caption
+  // const caption = "<b>PIC: " + picId + ".jpg</b>" + "\n" + "<i>" + dateNormal + "</i>";
+
+  // //build edit caption params
+  // const editParams = {
+  //   editChannelId: picData.result.chat.id,
+  //   messageId: picData.result.message_id,
+  //   caption: caption,
+  // };
+
+  // const editCaptionData = await tgEditMessageCaption(editParams);
+  // return editCaptionData;
 };
 
 //uploads thumbnail and vid SEPARATELY (might want to change)
@@ -213,29 +265,3 @@ export const buildChunkForm = async (inputObj) => {
 // console.log("--------------------------------");
 
 // if (!picUploadData) return null;
-
-// export const uploadPicFS = async (inputObj) => {
-//   const { picId, savePath, dateNormal, tgUploadId } = inputObj;
-
-//   //build pic params
-//   const picParams = {
-//     chatId: tgUploadId,
-//     picPath: savePath,
-//   };
-
-//   const picData = await tgPostPicReq(picParams);
-//   if (!picData) return null;
-
-//   //build caption
-//   const caption = "<b>PIC: " + picId + ".jpg</b>" + "\n" + "<i>" + dateNormal + "</i>";
-
-//   //build edit caption params
-//   const editParams = {
-//     editChannelId: picData.result.chat.id,
-//     messageId: picData.result.message_id,
-//     caption: caption,
-//   };
-
-//   const editCaptionData = await tgEditMessageCaption(editParams);
-//   return editCaptionData;
-// };

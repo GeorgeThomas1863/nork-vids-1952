@@ -59,9 +59,9 @@ export const tgPostPicFS = async (inputParams) => {
       headers: form.getHeaders(),
     });
 
-    console.log("RES");
-    console.log(res.data);
-    console.log("--------------------------------");
+    // console.log("RES");
+    // console.log(res.data);
+    // console.log("--------------------------------");
 
     // const checkData = await checkToken(res.data);
 
@@ -75,7 +75,7 @@ export const tgPostPicFS = async (inputParams) => {
       const checkData = await checkToken(e.response.data);
 
       //retry
-      if (!checkData) return await tgPostPicReq(inputParams);
+      if (!checkData) return await tgPostPicFS(inputParams);
     } else {
       //otherwise throw error
       const error = new Error("UPLOAD PIC FUCKED");
