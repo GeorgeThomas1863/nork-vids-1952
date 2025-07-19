@@ -43,7 +43,7 @@ export const tgPostReq = async (url, params) => {
   }
 };
 
-export const tgPostPicReq = async (inputParams) => {
+export const tgPostPicFS = async (inputParams) => {
   const { chatId, picPath } = inputParams;
   const token = tokenArray[tokenIndex];
 
@@ -80,14 +80,14 @@ export const tgPostPicReq = async (inputParams) => {
       //otherwise throw error
       const error = new Error("UPLOAD PIC FUCKED");
       console.log(e);
-      error.function = "tgPostPicReq";
+      error.function = "tgPostPicFS";
       error.content = inputParams;
       throw error;
     }
   }
 };
 
-export const tgPostVidReq = async (inputParams) => {
+export const tgPostVidFS = async (inputParams) => {
   const { form } = inputParams;
   const token = tokenArray[tokenIndex];
 
@@ -100,8 +100,8 @@ export const tgPostVidReq = async (inputParams) => {
       maxContentLength: Infinity,
     });
 
-    console.log("!!!!!!RES");
-    console.log(res.data);
+    // console.log("!!!!!!RES");
+    // console.log(res.data);
 
     return res.data;
   } catch (e) {
@@ -110,10 +110,10 @@ export const tgPostVidReq = async (inputParams) => {
       const checkData = await checkToken(e.response.data);
 
       //retry
-      if (!checkData) return await tgPostVidReq(inputParams);
+      if (!checkData) return await tgPostVidFS(inputParams);
     } else {
       const error = new Error("UPLOAD VID FUCKED");
-      error.function = "tgPostVidReq";
+      error.function = "tgPostVidFS";
       error.content = inputParams;
       throw error;
     }

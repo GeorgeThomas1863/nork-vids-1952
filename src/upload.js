@@ -4,7 +4,7 @@ import FormData from "form-data";
 import CONFIG from "../config/config.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
-import { tgPostPicReq, tgEditMessageCaption, tgPostVidReq } from "./tg-api.js";
+import { tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from "./tg-api.js";
 
 export const uploadNewVids = async () => {
   const { kcnaWatchDownloaded, kcnaWatchUploaded } = CONFIG;
@@ -103,7 +103,7 @@ export const uploadVidChunk = async (inputObj) => {
   if (!inputObj) return null;
   const { thumbnailPath, uploadChunkSize, uploadChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
 
-  const chunkParams = { ...inputObj };
+  const chunkObj = { ...inputObj };
 
   // console.log("upload VIDFS CHUNK SIZE");
   // console.log(uploadChunkSize);
@@ -114,24 +114,31 @@ export const uploadVidChunk = async (inputObj) => {
     if (!scrapeState.scrapeActive) return null;
     try {
       //define chunk start end
-      chunkParams.chunkStart = i * uploadChunkSize;
-      chunkParams.chunkEnd = Math.min(vidSizeBytes, chunkParams.chunkStart + uploadChunkSize);
-      chunkParams.chunkLength = chunkParams.chunkEnd - chunkParams.chunkStart;
-      chunkParams.chunkNumber = i + 1; //THIS WILL BREAK THINGS
+      const start = i * uploadChunkSize;
+      const end = Math.min(vidSizeBytes, start + uploadChunkSize);
+
+      chunkObj.chunkStart = start;
+      chunkObj.chunkEnd = end;
+      chunkObj.chunkNumber = i; //THIS WILL BREAK THINGS
+
+      // chunkParams.chunkStart = i * uploadChunkSize;
+      // chunkParams.chunkEnd = Math.min(vidSizeBytes, chunkParams.chunkStart + uploadChunkSize);
+      // chunkParams.chunkLength = chunkParams.chunkEnd - chunkParams.chunkStart;
+      // chunkParams.chunkNumber = i + 1; //THIS WILL BREAK THINGS
 
       console.log("++++++++++++++++++++++++");
-      console.log(`NEW CHUNK! CHUNK START: ${chunkParams.chunkStart} | CHUNK END: ${chunkParams.chunkEnd} | CHUNK NUMBER: ${chunkParams.chunkNumber}`);
+      console.log(`NEW CHUNK! CHUNK START: ${start} | CHUNK END: ${end} | CHUNK NUMBER: ${chunkObj.chunkNumber}`);
 
-      console.log("CHUNK PARAMS");
-      console.log(chunkParams);
+      console.log("CHUNK OBJ");
+      console.log(chunkObj);
 
-      const chunkForm = await buildChunkForm(chunkParams);
+      const chunkForm = await buildChunkForm(chunkObj);
 
       console.log("CHUNK FORM");
       console.log(chunkForm);
       console.log("--------------------------------");
 
-      const chunkPostData = await tgPostVidReq({ form: chunkForm });
+      const chunkPostData = await tgPostVidFS({ form: chunkForm });
       if (!chunkPostData) continue;
 
       chunkDataArray.push(chunkPostData);
@@ -145,25 +152,21 @@ export const uploadVidChunk = async (inputObj) => {
 };
 
 export const buildChunkForm = async (inputObj) => {
-  const { savePath, tgUploadId, thumbnailPath, chunkStart, chunkEnd, chunkLength, chunkNumber, uploadChunks } = inputObj;
+  const { savePath, tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
 
-  const readStream = fs.createReadStream(savePath, { start: +chunkStart, end: +chunkEnd - 1 });
-
-  // console.log("READ STREAM");
-  // console.log(readStream);
-  // console.log("--------------------------------");
+  const readStream = fs.createReadStream(savePath, { start: start, end: end - 1 });
 
   // Create form data for this chunk
   const formData = new FormData();
   formData.append("chat_id", tgUploadId);
   formData.append("video", readStream, {
     filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
-    knownLength: chunkLength,
+    knownLength: end - start,
   });
 
-  console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
-  console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
-  console.log("--------------------------------");
+  // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
+  // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
+  // console.log("--------------------------------");
 
   //set setting for auto play / streaming
   formData.append("supports_streaming", "true");
