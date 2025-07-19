@@ -62,6 +62,10 @@ export const uploadVidItem = async (inputObj) => {
     parse_mode: "HTML",
   };
 
+  console.log("TITLE PARAMS");
+  console.log(titleParams);
+  console.log("--------------------------------");
+
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
 
