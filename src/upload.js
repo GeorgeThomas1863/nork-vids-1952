@@ -51,7 +51,7 @@ export const uploadVidArray = async (inputArray) => {
 //uploads thumbnail and vid SEPARATELY (might want to change)
 export const uploadVidFS = async (inputObj) => {
   if (!inputObj) return null;
-  const { thumbnailSavePath, vidSavePath, date, itemId, vidData } = inputObj;
+  const { thumbnailSavePath, vidSavePath, date, vidData, vidName } = inputObj;
   const { vidSizeBytes, vidSizeMB } = vidData;
   const { uploadChunkSize, tgUploadId } = CONFIG;
 
@@ -81,7 +81,7 @@ export const uploadVidFS = async (inputObj) => {
     uploadChunkSize: uploadChunkSize,
     vidSizeBytes: vidSizeBytes,
     uploadChunks: uploadChunks,
-    vidId: itemId,
+    vidName: vidName,
     savePath: vidSavePath,
     tgUploadId: tgUploadId,
   };
@@ -101,7 +101,7 @@ export const uploadVidFS = async (inputObj) => {
 
 export const uploadVidChunk = async (inputObj) => {
   if (!inputObj) return null;
-  const { thumbnailPath, uploadChunkSize, uploadChunks, vidId, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
+  const { thumbnailPath, uploadChunkSize, uploadChunks, vidName, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
 
   const chunkObj = { ...inputObj };
 
