@@ -1,5 +1,5 @@
 //TO DO:
-//REDO UPLOAD AND JUST USE FUCKING FFMPEG TO COMBINE VIDS 
+//download is still fucked, now something in common wiht hte upload 
 
 //VID UPLOAD NOT QUITE WORKING, FIGURE OUT ERROR
 //STORE VID UPLOAD DATA
