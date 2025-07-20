@@ -121,6 +121,12 @@ export const getVidListArray = async (inputObj) => {
     vidListArray.push(currentList);
   }
 
+  console.log("VID LIST ARRAY");
+  console.log(vidListArray);
+  console.log("--------------------------------");
+
+  if (!vidListArray || !vidListArray.length) return null;
+
   //sort at the end
   const vidSortArray = vidListArray.sort((a, b) => {
     const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
