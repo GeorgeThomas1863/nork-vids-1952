@@ -3,6 +3,11 @@ import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+//some promises thing to run ffmpeg
+const execPromise = promisify(exec);
 
 export const downloadNewVids = async () => {
   await getNewVidData();
@@ -68,6 +73,12 @@ export const getVidData = async (inputObj) => {
     throw error;
   }
 
+  //get vid length using ffmpeg
+  const vidLength = await getVidLength(vidURL);
+
+  console.log("VID LENGTH");
+  console.log(vidLength);
+
   const vidData = await parseHeaderData(headerData);
 
   if (!vidData) {
@@ -76,6 +87,8 @@ export const getVidData = async (inputObj) => {
     error.content = headerData;
     throw error;
   }
+
+  
 
   const updateParams = {
     keyToLookup: "vidURL",
@@ -90,8 +103,32 @@ export const getVidData = async (inputObj) => {
   console.log("UPDATE DATA");
   console.log(updateData);
 
+  //TURN BACK ON
   return vidData;
 };
+
+export const getVidLength = async (inputURL) => {
+  if (!inputURL) return null;
+
+  const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputURL}"`;  
+  const { stdout, stderr } = await execPromise(cmd);
+
+  console.log("FFPROBE OUTPUT");
+  console.log(stdout);
+  
+  if (stderr) {
+      throw new Error(`FFprobe error: ${stderr}`);
+  }
+  
+  const vidLength = parseFloat(stdout.trim());
+  
+  if (isNaN(duration)) {
+      throw new Error('Could not parse duration from ffprobe output');
+  }
+  
+  return vidLength;
+
+}
 
 export const parseHeaderData = async (inputData) => {
   if (!inputData) return null;
