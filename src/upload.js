@@ -1,6 +1,8 @@
 import fs from "fs";
 import fsPromises from "fs/promises";
+import path from "path";
 import FormData from "form-data";
+import { exec } from "child_process/promises";
 
 import CONFIG from "../config/config.js";
 import dbModel from "../models/db-model.js";
@@ -73,149 +75,6 @@ export const uploadVidFolder = async (inputObj) => {
   const vidFolderArray = await combineVidFolder(inputObj);
 };
 
-export const combineVidFolder = async (inputObj) => {
-  if (!inputObj || !inputObj.vidSavePath) return null;
-  const { vidSavePath } = inputObj;
-  const { tempPath } = CONFIG;
-
-  //throw error if vid folder doesnt exist
-  if (!fs.existsSync(vidSavePath)) {
-    const error = new Error("VID FOLDER NOT FOUND");
-    error.function = "combineVidFolder";
-    error.content = inputObj;
-    throw error;
-  }
-
-  //get the files in the folder
-  const fileArray = fs.readdirSync(vidSavePath);
-  if (!fileArray || !fileArray.length) return null;
-
-  const vidListChunkArray = await getVidListChunkArray(fileArray);
-
-    //throw error if no vids
-  if (!vidListChunkArray || !vidListChunkArray.length) {
-    const error = new Error("NO VIDS FOUND");
-    error.function = "combineVidFolder";
-    error.content = inputObj;
-    throw error;
-  }
-
-//HERE
-//NOW COMBINE THE VIDS IN EACH CHUNK ARRAY
-
-  console.log("VID LIST CHUNK ARRAY");
-  console.log(vidListChunkArray);
-  console.log("--------------------------------");
-
-  //loop through to only combine X number of vids
-  // const vidFileArray = [];
-  // for (let i = 0; i < fileArray.length; i++) {
-  //   const file = fileArray[i];
-  //   if (file.endsWith(".mp4")) {
-  //     vidFileArray.push(file);
-  //   }
-  // }
-
-
-
-  // //create temp list file for ffmpeg
-  // const listFilePath = tempPath + "vid_list.txt";
-  // let fileContent = "";
-
-  // for (let i = 0; i < vidFileArray.length; i++) {
-  //   fileContent += `file '${vidFileArray[i]}'`;
-  //   if (i < vidFileArray.length - 1) {
-  //     fileContent += "\n";
-  //   }
-  // }
-};
-
-//return array of vid arrays to combine
-export const getVidListChunkArray = async (inputArray) => {
-  if (!inputArray || !inputArray.length) return null;
-  const { vidUploadSize, vidChunkSize } = CONFIG;
-
-  //set the number of vids to combine
-  const maxVids = Math.ceil(vidUploadSize / vidChunkSize);
-
-  //sort the fuckign array by number HERE
-  const sortArray = inputArray.sort((a, b) => {
-    const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
-    const numB = parseInt(b.match(/chunk_(\d+)\.mp4/)[1]);
-    return numA - numB;
-  });
-
-  const vidListChunkArray = [];
-  let currentChunk = [];
-  for (let i = 0; i < sortArray.length; i++) {
-    const file = sortArray[i];
-
-    //only add .mp4 files
-    if (!file.endsWith(".mp4")) continue;
-
-    currentChunk.push(file);
-
-    if (currentChunk.length === maxVids || currentChunk.length > maxVids) {
-      vidListChunkArray.push(currentChunk);
-      currentChunk = [];
-    }
-  }
-
-  if (currentChunk && currentChunk.length > 0) {
-    vidListChunkArray.push(currentChunk);
-  }
-
-  return vidListChunkArray;
-};
-
-// export const chunkVid = async (inputObj) => {
-//   if (!inputObj || !inputObj.vidSavePath) return null;
-//   const { vidSavePath, vidData, vidName } = inputObj;
-//   const { vidSizeBytes, vidSizeMB } = vidData;
-//   const { uploadChunkSize, tempPath } = CONFIG;
-
-//   const tempVidPath = tempPath + vidName;
-//   const totalChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
-
-//   //if vid is smaller than chunk size, return inputObj
-//   if (uploadChunkSize > vidSizeBytes) return [inputObj];
-
-//   //open the vid
-//   const vidFile = await fsPromises.open(vidSavePath, "r");
-//   if (!vidFile) return null;
-
-//   for (let i = 0; i < totalChunks; i++) {
-//     const chunkPath = `${tempVidPath}_chunk_${i + 1}.mp4`;
-//     const chunkStart = i * uploadChunkSize;
-//     const chunkEnd = (i + 1) * uploadChunkSize;
-
-//     const outputFile = await fsPromises.open(chunkPath, "w");
-
-//     const buffer = Buffer.alloc(64 * 1024); //some shit from claude, double check
-//     const readCount = Math.ceil(uploadChunkSize / buffer.length);
-
-//     for (let j = 0; j < readCount; j++) {
-//       const bytesRead = await vidFile.read(buffer, 0, buffer.length, chunkStart + j * buffer.length);
-//       if (bytesRead === 0) break;
-//       await outputFile.write(buffer, 0, bytesRead);
-//     }
-
-//     const { bytesRead } = await sourceHandle.read(buffer, 0, toRead, startPosition + bytesWritten);
-
-//     if (bytesRead === 0) break;
-
-//     await destHandle.write(buffer, 0, bytesRead);
-//     bytesWritten += bytesRead;
-
-//     const chunkObj = {
-//       vidName: vidName,
-//       vidSavePath: vidSavePath,
-//     };
-//   }
-
-//   //chunk vid
-// };
-
 export const buildCaptionText = async (inputObj, captionType = "title") => {
   if (!inputObj || !captionType) return null;
   const { date, type, title } = inputObj;
@@ -238,6 +97,141 @@ export const buildCaptionText = async (inputObj, captionType = "title") => {
     case "vid":
       break;
   }
+};
+
+export const combineVidFolder = async (inputObj) => {
+  if (!inputObj || !inputObj.vidSavePath) return null;
+  const { vidSavePath } = inputObj;
+  const { tempPath } = CONFIG;
+
+  //throw error if vid folder doesnt exist
+  if (!fs.existsSync(vidSavePath)) {
+    const error = new Error("VID FOLDER NOT FOUND");
+    error.function = "combineVidFolder";
+    error.content = inputObj;
+    throw error;
+  }
+
+  //get the files in the folder
+  const fileArray = fs.readdirSync(vidSavePath);
+  if (!fileArray || !fileArray.length) return null;
+
+  const vidListArray = await getVidListArray(fileArray);
+
+  //throw error if no vids
+  if (!vidListArray || !vidListArray.length) {
+    const error = new Error("NO VIDS FOUND");
+    error.function = "combineVidFolder";
+    error.content = inputObj;
+    throw error;
+  }
+
+  //HERE
+  //NOW COMBINE THE VIDS IN EACH CHUNK ARRAY
+  const vidListDataArray = [];
+  for (let i = 0; i < vidListArray.length; i++) {
+    try {
+      const vidList = vidListArray[i];
+      const vidListData = await combineVidList(vidList, inputObj);
+      if (!vidListData) continue;
+
+      vidListDataArray.push(vidListData);
+    } catch (e) {
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+    }
+  }
+
+  console.log("VID LIST DATA ARRAY");
+  console.log(vidListDataArray);
+  console.log("--------------------------------");
+
+  return vidListDataArray;
+};
+
+//return array of vid arrays to combine
+export const getVidListArray = async (inputArray) => {
+  if (!inputArray || !inputArray.length) return null;
+  const { vidUploadSize, vidChunkSize } = CONFIG;
+
+  //set the number of vids to combine
+  const maxVids = Math.ceil(vidUploadSize / vidChunkSize);
+
+  //sort the fuckign array by number HERE
+  const sortArray = inputArray.sort((a, b) => {
+    const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
+    const numB = parseInt(b.match(/chunk_(\d+)\.mp4/)[1]);
+    return numA - numB;
+  });
+
+  const vidListArray = [];
+  let currentList = [];
+  for (let i = 0; i < sortArray.length; i++) {
+    const file = sortArray[i];
+
+    //only add .mp4 files
+    if (!file.endsWith(".mp4")) continue;
+
+    currentList.push(file);
+
+    if (currentList.length === maxVids || currentList.length > maxVids) {
+      vidListArray.push(currentList);
+      currentList = [];
+    }
+  }
+
+  //get last item
+  if (currentList && currentList.length > 0) {
+    vidListArray.push(currentList);
+  }
+
+  return vidListArray;
+};
+
+export const combineVidList = async (inputArray, inputObj) => {
+  if (!inputArray || !inputArray.length || !inputObj) return null;
+  const { vidName } = inputObj;
+  const { tempPath } = CONFIG;
+
+  //create temp file for ffmpeg
+  const listFilePath = tempPath + vidName + "_list.txt";
+  const outputFilePath = tempPath + vidName + "_combined.mp4";
+
+  //create file content
+  let fileContent = "";
+  for (let i = 0; i < inputArray.length; i++) {
+    const vidFile = inputArray[i];
+    fileContent += `file '${vidFile}'`;
+    if (i < inputArray.length - 1) {
+      fileContent += "\n";
+    }
+  }
+
+  //run ffmpeg
+  const vidListData = await runFfmpeg(inputArray, listFilePath, outputFilePath);
+  return vidListData;
+};
+
+export const runFfmpeg = async (inputArray, listFilePath, outputFilePath) => {
+  await fsPromises.writeFile(listFilePath, fileContent);
+
+  const ffmpegCommand = `cd "${vidSavePath}" && ffmpeg -f concat -safe 0 -i "videos_list.txt" -c copy "${path.resolve(outputFilePath)}" -y`;
+
+  console.log(`Combining ${inputArray.length} videos from ${vidSavePath}`);
+  console.log("--------------------------------");
+
+  const { stderr, stdout } = await exec(ffmpegCommand);
+
+  if (stderr) {
+    console.log("FFmpeg stderr:", stderr);
+  }
+
+  console.log("FFmpeg stdout:", stdout);
+  console.log("--------------------------------");
+
+  // Clean up the temporary list file
+  await fsPromises.unlink(listFilePath);
+
+  return stdout;
 };
 
 //uploads thumbnail and vid SEPARATELY (might want to change)
