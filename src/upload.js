@@ -178,7 +178,7 @@ export const combineVidListItem = async (inputArray, inputObj) => {
     }
   }
 
-  const ffmpegCommand = `cd "${vidSavePath}" && ffmpeg -f concat -safe 0 -i "${vidName}_list.txt" -c copy "${path.resolve(outputFilePath)}" -y`;
+  const ffmpegCommand = `cd "${tempPath}" && ffmpeg -f concat -safe 0 -i "${vidName}_list.txt" -c copy "${path.resolve(outputFilePath)}" -y`;
 
   console.log(`Combining ${inputArray.length} videos from ${vidSavePath}`);
   console.log("--------------------------------");
