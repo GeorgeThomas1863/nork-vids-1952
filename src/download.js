@@ -11,7 +11,7 @@ const execPromise = promisify(exec);
 
 export const downloadNewVids = async () => {
   await getNewVidData();
-  // await downloadNewVidArray();
+  await downloadNewVidArray();
 
   console.log("FINISHED DOWNLOADING NEW VIDS");
   return true;
@@ -128,17 +128,17 @@ export const getVidLength = async (inputURL) => {
     throw new Error(`FFprobe error: ${stderr}`);
   }
 
-  const vidLengthSeconds = parseFloat(stdout.trim());
+  const vidSeconds = parseFloat(stdout.trim());
 
   if (isNaN(vidLengthSeconds)) {
     throw new Error("Could not parse duration from ffprobe output");
   }
 
-  const vidLengthMinutes = Math.floor(vidLengthSeconds / 60);
+  const vidMinutes = Math.floor(vidLengthSeconds / 60);
 
   const timeObj = {
-    vidLengthSeconds: vidLengthSeconds,
-    vidLengthMinutes: vidLengthMinutes,
+    vidSeconds: vidSeconds,
+    vidMinutes: vidMinutes,
   };
 
   return timeObj;
@@ -233,7 +233,7 @@ export const downloadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
   const { watchPath } = CONFIG;
   const { vidURL, vidData, vidName } = inputObj;
-  const { vidSizeBytes, downloadChunks } = vidData;
+  const { vidSizeBytes, downloadChunks, vidSeconds } = vidData;
 
   //define vid save DIRECTORY
   const vidSavePath = `${watchPath}${vidName}_chunks/`;
@@ -250,6 +250,7 @@ export const downloadVidFS = async (inputObj) => {
     vidSizeBytes: vidSizeBytes,
     vidSavePath: vidSavePath,
     vidName: vidName,
+    vidSeconds: vidSeconds,
   };
 
   const vidModel = new KCNA(params);

@@ -2,10 +2,15 @@
 
 import axios from "axios";
 import fs from "fs";
+import fsPromises from "fs/promises";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 import CONFIG from "../config/config.js";
-
 import { randomDelay } from "../config/util.js";
+
+//some promises thing to run ffmpeg
+const execPromise = promisify(exec);
 
 class DLHelper {
   constructor(dataObject) {
@@ -17,41 +22,46 @@ class DLHelper {
   //UTIL for multi thread vid download
 
   async getCompletedVidChunks() {
-    const { vidSavePath, downloadChunks, vidSizeBytes } = this.dataObject;
-    const { vidChunkSize } = CONFIG;
+    const { vidSavePath, downloadChunks } = this.dataObject;
 
     // Make sure we have all required properties
-    if (!vidSavePath || !downloadChunks || !vidSizeBytes) {
+    if (!vidSavePath || !downloadChunks) {
       console.log("Error: Missing required properties for getCompletedVidChunks");
       return [];
     }
 
-    //check chunks, delete partial, return array of completed chunks
+    //check chunks are complete vid items, add if they are
     const completedChunkArray = [];
     for (let i = 0; i < downloadChunks; i++) {
       const savePath = `${vidSavePath}chunk_${i + 1}.mp4`;
-      const expectedSize = i < downloadChunks - 1 ? vidChunkSize : vidSizeBytes - i * vidChunkSize;
 
-      if (fs.existsSync(savePath)) {
-        const stats = fs.statSync(savePath);
+      if (!(await fsPromises.exists(savePath))) continue;
 
-        if (stats.size === expectedSize) {
-          completedChunkArray.push(i);
-        } else {
-          fs.unlinkSync(savePath); // Remove partial chunks
+      try {
+        // Check if it's a valid video file using ffprobe
+        const cmd = `ffprobe -v error -select_streams v:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 "${savePath}"`;
+        const result = await execPromise(cmd, { encoding: "utf8" }).trim();
+
+        if (result !== "video") {
+          await fsPromises.unlink(savePath);
+          continue;
         }
+
+        completedChunkArray.push(savePath);
+      } catch (e) {
+        // If ffprobe fails, the file is likely corrupted
+        await fsPromises.unlink(savePath);
       }
     }
-
     return completedChunkArray;
   }
 
   async createVidQueue() {
-    const { completedChunkArray, downloadChunks, vidSizeBytes } = this.dataObject;
-    const { vidChunkSize } = CONFIG;
+    const { completedChunkArray, downloadChunks, vidSizeBytes, vidSeconds } = this.dataObject;
+    const { chunkSeconds } = CONFIG; //default chunk length
 
     // Make sure we have all required properties
-    if (!downloadChunks || !vidSizeBytes) {
+    if (!downloadChunks || !chunkSeconds) {
       console.log("Error: Missing required properties for createVidQueue");
       return [];
     }
@@ -60,18 +70,20 @@ class DLHelper {
     const completedChunks = completedChunkArray || [];
 
     const pendingChunkArray = [];
-
     for (let i = 0; i < downloadChunks; i++) {
-      if (!completedChunks.includes(i)) {
-        const start = i * vidChunkSize;
-        const end = Math.min(start + vidChunkSize - 1, vidSizeBytes - 1);
-        const pendingObj = {
-          index: i,
-          start: start,
-          end: end,
-        };
-        pendingChunkArray.push(pendingObj);
-      }
+      if (completedChunks.includes(i)) continue;
+
+      const start = i * chunkSeconds;
+      const end = Math.min((i + 1) * chunkSeconds, vidSeconds);
+      const chunkLength = end - start;
+      const pendingObj = {
+        index: i,
+        start: start,
+        // end: end,
+        chunkLength: chunkLength,
+      };
+
+      pendingChunkArray.push(pendingObj);
     }
 
     return pendingChunkArray;
@@ -105,10 +117,10 @@ class DLHelper {
 
           downloadObj.chunkIndex = chunk.index;
           downloadObj.start = chunk.start;
-          downloadObj.end = chunk.end;
+          downloadObj.chunkLength = chunk.chunkLength;
 
           const downloadModel = new DLHelper(downloadObj);
-          const downloadPromise = downloadModel.downloadVidChunk();
+          const downloadPromise = downloadModel.downloadVidChunkFfmpeg();
           promises.push(downloadPromise);
         }
 
@@ -145,37 +157,65 @@ class DLHelper {
     return downloadedChunkArray?.length;
   }
 
-  async downloadVidChunk() {
-    const { url, vidSavePath, vidName, chunkIndex, start, end } = this.dataObject;
-    const { vidRetries } = CONFIG;
+  async downloadVidChunkFfmpeg() {
+    const { url, vidSavePath, vidName, chunkIndex, start, chunkLength } = this.dataObject;
+    const { vidRetries, tempPath } = CONFIG;
 
     // Make sure we have all required properties
-    if (!url || !vidSavePath || chunkIndex === undefined || start === undefined || end === undefined) {
+    if (!url || !vidSavePath || !chunkIndex || !start || !chunkLength) {
       console.log("Error: Missing required properties for downloadVidChunk");
       return null;
     }
 
+    //define paths
+    const chunkName = `chunk_${chunkIndex + 1}.mp4`;
+    const chunkPath = `${vidSavePath}${chunkName}`;
+    const chunkTempPath = `${tempPath}${chunkPath}.tmp`;
+
     for (let retry = 0; retry < vidRetries; retry++) {
       try {
-        const res = await axios({
-          method: "get",
-          url: url,
-          responseType: "arraybuffer",
-          timeout: 1 * 60 * 1000, //1 minute delay (needed)
-          headers: { Range: `bytes=${start}-${end}` },
+        // Use FFmpeg to download a specific time segment as a complete video
+        const ffmpegCmd = [
+          "ffmpeg",
+          "-ss",
+          start.toString(), // Start time
+          "-i",
+          `"${url}"`, // Input URL
+          "-t",
+          chunkLength.toString(), // Duration
+          "-c",
+          "copy", // Copy codecs (fast)
+          "-avoid_negative_ts",
+          "make_zero", // Handle timestamp issues
+          "-movflags",
+          "+faststart", // Optimize for streaming
+          "-y", // Overwrite output
+          `"${chunkTempPath}"`, // Output file
+        ].join(" ");
+
+        // Execute FFmpeg command
+        await execPromise(ffmpegCmd, {
+          stdio: "pipe",
+          encoding: "utf8",
         });
 
-        // Write chunk to temporary file
-        const savePath = `${vidSavePath}chunk_${chunkIndex + 1}.mp4`;
-        fs.writeFileSync(savePath, Buffer.from(res.data));
+        // Verify the output file exists and is valid
+        const checkChunk = await this.checkChunkData(chunkTempPath);
 
-        console.log(`Chunk ${chunkIndex} downloaded (bytes ${start}-${end})`);
+        //if chunk fucked delete file and throw error
+        if (!checkChunk) {
+          await fsPromises.unlink(chunkTempPath);
+          throw new Error("Output file is FUCKED / empty or doesn't exist");
+        }
 
-        //obv put into obj
+        // otherwise move temp file to final location
+        await fsPromises.rename(chunkTempPath, chunkPath);
+        console.log(`Chunk ${chunkIndex} downloaded successfully`);
+
         const returnObj = {
           chunkIndex: chunkIndex,
           start: start,
-          end: end,
+          chunkLength: chunkLength,
         };
 
         return returnObj;
@@ -193,33 +233,15 @@ class DLHelper {
     }
   }
 
-  // async mergeChunks() {
-  //   const { savePath, vidTempPath, downloadChunks } = this.dataObject;
+  async checkChunkData(chunkPath) {
+    if (!(await fsPromises.exists(chunkPath))) return null;
 
-  //   console.log("Merging chunks...");
-  //   const writeStream = fs.createWriteStream(savePath);
+    const stats = await fsPromises.stat(chunkPath);
+    if (stats.size === 0) return null;
 
-  //   for (let i = 0; i < downloadChunks; i++) {
-  //     const tempFile = `${vidTempPath}.part${i}`;
-  //     const chunkData = fs.readFileSync(tempFile);
-  //     writeStream.write(chunkData);
-  //     fs.unlinkSync(tempFile); // Clean up temp file
-  //   }
-
-  //   writeStream.end();
-  //   console.log("Merge complete");
-  // }
-
-  // async cleanupTempVidFiles() {
-  //   const { vidTempPath, downloadChunks } = this.dataObject;
-
-  //   for (let i = 0; i < downloadChunks; i++) {
-  //     const tempFile = `${vidTempPath}.part${i}`;
-  //     if (fs.existsSync(tempFile)) {
-  //       fs.unlinkSync(tempFile);
-  //     }
-  //   }
-  // }
+    //otherwise return true
+    return true;
+  }
 }
 
 export default DLHelper;
