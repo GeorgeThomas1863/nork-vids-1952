@@ -172,7 +172,8 @@ export const combineVidListItem = async (inputArray, inputObj) => {
   let fileContent = "";
   for (let i = 0; i < inputArray.length; i++) {
     const vidFile = inputArray[i];
-    fileContent += `file '${vidFile}'`;
+    const vidFilePath = vidSavePath + vidFile;
+    fileContent += `file '${vidFilePath}'`;
     if (i < inputArray.length - 1) {
       fileContent += "\n";
     }
