@@ -27,9 +27,10 @@ export const uploadNewVids = async () => {
   const newVidArray = await newVidModel.findNewURLs();
   if (!newVidArray || !newVidArray.length) return null;
 
-  const vidUploadData = await uploadVidArray(newVidArray);
+  //TURN BACK ON
+  // const vidUploadData = await uploadVidArray(newVidArray);
 
-  return vidUploadData;
+  // return vidUploadData;
 };
 
 export const uploadVidArray = async (inputArray) => {
