@@ -1,4 +1,6 @@
 //TO DO:
+
+//new plan to get vid length in the headers
 //download is still fucked, now something in common wiht hte upload 
 
 //VID UPLOAD NOT QUITE WORKING, FIGURE OUT ERROR
