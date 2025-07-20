@@ -133,10 +133,17 @@ export const getVidListChunkArray = async (inputArray) => {
   //set the number of vids to combine
   const maxVids = Math.ceil(vidUploadSize / vidChunkSize);
 
+  //sort the fuckign array by number HERE
+  const sortArray = inputArray.sort((a, b) => {
+    const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
+    const numB = parseInt(b.match(/chunk_(\d+)\.mp4/)[1]);
+    return numA - numB;
+  });
+
   const vidListChunkArray = [];
   let currentChunk = [];
-  for (let i = 0; i < inputArray.length; i++) {
-    const file = inputArray[i];
+  for (let i = 0; i < sortArray.length; i++) {
+    const file = sortArray[i];
 
     //only add .mp4 files
     if (!file.endsWith(".mp4")) continue;
