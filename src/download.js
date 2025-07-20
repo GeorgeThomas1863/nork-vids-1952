@@ -88,8 +88,6 @@ export const getVidData = async (inputObj) => {
     throw error;
   }
 
-  
-
   const updateParams = {
     keyToLookup: "vidURL",
     itemValue: vidURL,
@@ -110,25 +108,27 @@ export const getVidData = async (inputObj) => {
 export const getVidLength = async (inputURL) => {
   if (!inputURL) return null;
 
-  const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputURL}"`;  
+  console.log("GET VID LENGTH INPUT URL");
+  console.log(inputURL);
+
+  const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputURL}"`;
   const { stdout, stderr } = await execPromise(cmd);
 
   console.log("FFPROBE OUTPUT");
   console.log(stdout);
-  
-  if (stderr) {
-      throw new Error(`FFprobe error: ${stderr}`);
-  }
-  
-  const vidLength = parseFloat(stdout.trim());
-  
-  if (isNaN(duration)) {
-      throw new Error('Could not parse duration from ffprobe output');
-  }
-  
-  return vidLength;
 
-}
+  if (stderr) {
+    throw new Error(`FFprobe error: ${stderr}`);
+  }
+
+  const vidLength = parseFloat(stdout.trim());
+
+  if (isNaN(vidLength)) {
+    throw new Error("Could not parse duration from ffprobe output");
+  }
+
+  return vidLength;
+};
 
 export const parseHeaderData = async (inputData) => {
   if (!inputData) return null;
