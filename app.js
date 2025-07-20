@@ -1,5 +1,7 @@
 //TO DO:
 
+//close with vid download, paths prob fucked again
+
 //new plan to get vid length in the headers
 //download is still fucked, now something in common wiht hte upload 
 
