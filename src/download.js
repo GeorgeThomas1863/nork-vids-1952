@@ -59,8 +59,11 @@ export const parseVidDataArray = async (inputArray) => {
 
 export const getVidData = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL) return null;
+  const { vidURL, type } = inputObj;
   const { kcnaWatchContent } = CONFIG;
-  const { vidURL } = inputObj;
+
+  //dont waste time getting headers for full
+  if (type === "Full Broadcast") return null;
 
   const headerModel = new KCNA({ url: vidURL });
   const headerData = await headerModel.getMediaHeaders();
@@ -73,12 +76,6 @@ export const getVidData = async (inputObj) => {
     throw error;
   }
 
-  //get vid length using ffmpeg
-  const vidLengthObj = await getVidLength(vidURL);
-
-  console.log("VID LENGTH");
-  console.log(vidLengthObj);
-
   const headerObj = await parseHeaderData(headerData);
 
   if (!headerObj) {
@@ -88,7 +85,21 @@ export const getVidData = async (inputObj) => {
     throw error;
   }
 
+  //get vid length using ffmpeg
+  const vidLengthObj = await getVidLength(vidURL);
+
+  //throw error if cant get vid length
+  if (!vidLengthObj) {
+    const error = new Error("CANT GET VID LENGTH");
+    error.function = "getVidLength";
+    error.content = headerData;
+    throw error;
+  }
+
   const vidData = { ...headerObj, ...vidLengthObj };
+
+  console.log("VID DATA");
+  console.log(vidData);
 
   const updateParams = {
     keyToLookup: "vidURL",
@@ -110,14 +121,8 @@ export const getVidData = async (inputObj) => {
 export const getVidLength = async (inputURL) => {
   if (!inputURL) return null;
 
-  console.log("GET VID LENGTH INPUT URL");
-  console.log(inputURL);
-
   const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputURL}"`;
   const { stdout, stderr } = await execPromise(cmd);
-
-  // console.log("FFPROBE OUTPUT");
-  // console.log(stdout);
 
   if (stderr) {
     throw new Error(`FFprobe error: ${stderr}`);
