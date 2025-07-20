@@ -33,10 +33,9 @@ export const uploadVidArray = async (inputArray) => {
   for (let i = 0; i < 1; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      //TURN BACK ON
-      // const vidDataObj = await uploadVidItem(inputArray[i]);
-      // if (!vidDataObj) continue;
-      // uploadDataArray.push(vidDataObj);
+      const vidDataObj = await uploadVidFolder(inputArray[i]);
+      if (!vidDataObj) continue;
+      uploadDataArray.push(vidDataObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
@@ -46,7 +45,7 @@ export const uploadVidArray = async (inputArray) => {
   return uploadDataArray;
 };
 
-export const uploadVidItem = async (inputObj) => {
+export const uploadVidFolder = async (inputObj) => {
   if (!inputObj || !inputObj.thumbnailSavePath || !inputObj.vidSavePath) return null;
   const { thumbnailSavePath, vidSavePath, vidData, vidName } = inputObj;
   const { tgUploadId } = CONFIG;
@@ -70,57 +69,140 @@ export const uploadVidItem = async (inputObj) => {
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
 
-  //now upload vids
-  const chunkArray = await chunkVid(inputObj);
+  //combine the vids in the directory
+  const vidFolderArray = await combineVidFolder(inputObj);
 };
 
-export const chunkVid = async (inputObj) => {
+export const combineVidFolder = async (inputObj) => {
   if (!inputObj || !inputObj.vidSavePath) return null;
-  const { vidSavePath, vidData, vidName } = inputObj;
-  const { vidSizeBytes, vidSizeMB } = vidData;
-  const { uploadChunkSize, tempPath } = CONFIG;
+  const { vidSavePath } = inputObj;
+  const { tempPath } = CONFIG;
 
-  const tempVidPath = tempPath + vidName;
-  const totalChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
-
-  //if vid is smaller than chunk size, return inputObj
-  if (uploadChunkSize > vidSizeBytes) return [inputObj];
-
-  //open the vid
-  const vidFile = await fsPromises.open(vidSavePath, "r");
-  if (!vidFile) return null;
-
-  for (let i = 0; i < totalChunks; i++) {
-    const chunkPath = `${tempVidPath}_chunk_${i + 1}.mp4`;
-    const chunkStart = i * uploadChunkSize;
-    const chunkEnd = (i + 1) * uploadChunkSize;
-
-    const outputFile = await fsPromises.open(chunkPath, "w");
-
-    const buffer = Buffer.alloc(64 * 1024); //some shit from claude, double check
-    const readCount = Math.ceil(uploadChunkSize / buffer.length);
-
-    for (let j = 0; j < readCount; j++) {
-      const bytesRead = await vidFile.read(buffer, 0, buffer.length, chunkStart + j * buffer.length);
-      if (bytesRead === 0) break;
-      await outputFile.write(buffer, 0, bytesRead);
-    }
-
-    const { bytesRead } = await sourceHandle.read(buffer, 0, toRead, startPosition + bytesWritten);
-
-    if (bytesRead === 0) break;
-
-    await destHandle.write(buffer, 0, bytesRead);
-    bytesWritten += bytesRead;
-
-    const chunkObj = {
-      vidName: vidName,
-      vidSavePath: vidSavePath,
-    };
+  //throw error if vid folder doesnt exist
+  if (!fs.existsSync(vidSavePath)) {
+    const error = new Error("VID FOLDER NOT FOUND");
+    error.function = "combineVidFolder";
+    error.content = inputObj;
+    throw error;
   }
 
-  //chunk vid
+  //get the files in the folder
+  const fileArray = fs.readdirSync(vidSavePath);
+  if (!fileArray || !fileArray.length) return null;
+
+  const vidListChunkArray = await getVidListChunkArray(fileArray);
+
+  console.log("VID LIST CHUNK ARRAY");
+  console.log(vidListChunkArray);
+  console.log("--------------------------------");
+
+  //loop through to only combine X number of vids
+  // const vidFileArray = [];
+  // for (let i = 0; i < fileArray.length; i++) {
+  //   const file = fileArray[i];
+  //   if (file.endsWith(".mp4")) {
+  //     vidFileArray.push(file);
+  //   }
+  // }
+
+  // //throw error if no vids
+  // if (!vidFileArray || !vidFileArray.length) {
+  //   const error = new Error("NO VIDS FOUND");
+  //   error.function = "combineVidFolder";
+  //   error.content = inputObj;
+  //   throw error;
+  // }
+
+  // //create temp list file for ffmpeg
+  // const listFilePath = tempPath + "vid_list.txt";
+  // let fileContent = "";
+
+  // for (let i = 0; i < vidFileArray.length; i++) {
+  //   fileContent += `file '${vidFileArray[i]}'`;
+  //   if (i < vidFileArray.length - 1) {
+  //     fileContent += "\n";
+  //   }
+  // }
 };
+
+//return array of vid arrays to combine
+export const getVidListChunkArray = async (inputArray) => {
+  if (!inputArray || !inputArray.length) return null;
+  const { vidUploadSize, vidChunkSize } = CONFIG;
+
+  //set the number of vids to combine
+  const maxVids = Math.ceil(vidUploadSize / vidChunkSize);
+
+  const vidListChunkArray = [];
+  let currentChunk = [];
+  for (let i = 0; i < inputArray.length; i++) {
+    const file = fileArray[i];
+
+    //only add .mp4 files
+    if (!file.endsWith(".mp4")) continue;
+
+    currentChunk.push(file);
+
+    if (currentChunk.length === maxVids || currentChunk.length > maxVids) {
+      vidListChunkArray.push(currentChunk);
+      currentChunk = [];
+    }
+  }
+
+  if (currentChunk && currentChunk.length > 0) {
+    vidListChunkArray.push(currentChunk);
+  }
+
+  return vidListChunkArray;
+};
+
+// export const chunkVid = async (inputObj) => {
+//   if (!inputObj || !inputObj.vidSavePath) return null;
+//   const { vidSavePath, vidData, vidName } = inputObj;
+//   const { vidSizeBytes, vidSizeMB } = vidData;
+//   const { uploadChunkSize, tempPath } = CONFIG;
+
+//   const tempVidPath = tempPath + vidName;
+//   const totalChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
+
+//   //if vid is smaller than chunk size, return inputObj
+//   if (uploadChunkSize > vidSizeBytes) return [inputObj];
+
+//   //open the vid
+//   const vidFile = await fsPromises.open(vidSavePath, "r");
+//   if (!vidFile) return null;
+
+//   for (let i = 0; i < totalChunks; i++) {
+//     const chunkPath = `${tempVidPath}_chunk_${i + 1}.mp4`;
+//     const chunkStart = i * uploadChunkSize;
+//     const chunkEnd = (i + 1) * uploadChunkSize;
+
+//     const outputFile = await fsPromises.open(chunkPath, "w");
+
+//     const buffer = Buffer.alloc(64 * 1024); //some shit from claude, double check
+//     const readCount = Math.ceil(uploadChunkSize / buffer.length);
+
+//     for (let j = 0; j < readCount; j++) {
+//       const bytesRead = await vidFile.read(buffer, 0, buffer.length, chunkStart + j * buffer.length);
+//       if (bytesRead === 0) break;
+//       await outputFile.write(buffer, 0, bytesRead);
+//     }
+
+//     const { bytesRead } = await sourceHandle.read(buffer, 0, toRead, startPosition + bytesWritten);
+
+//     if (bytesRead === 0) break;
+
+//     await destHandle.write(buffer, 0, bytesRead);
+//     bytesWritten += bytesRead;
+
+//     const chunkObj = {
+//       vidName: vidName,
+//       vidSavePath: vidSavePath,
+//     };
+//   }
+
+//   //chunk vid
+// };
 
 export const buildCaptionText = async (inputObj, captionType = "title") => {
   if (!inputObj || !captionType) return null;
@@ -147,135 +229,135 @@ export const buildCaptionText = async (inputObj, captionType = "title") => {
 };
 
 //uploads thumbnail and vid SEPARATELY (might want to change)
-export const uploadVidFS = async (inputObj) => {
-  if (!inputObj) return null;
-  const { thumbnailSavePath, vidSavePath, date, vidData, vidName } = inputObj;
-  const { vidSizeBytes, vidSizeMB } = vidData;
-  const { uploadChunkSize, tgUploadId } = CONFIG;
+// export const uploadVidFS = async (inputObj) => {
+//   if (!inputObj) return null;
+//   const { thumbnailSavePath, vidSavePath, date, vidData, vidName } = inputObj;
+//   const { vidSizeBytes, vidSizeMB } = vidData;
+//   const { uploadChunkSize, tgUploadId } = CONFIG;
 
-  // console.log("UPLOAD CHUNK SIZE");
-  // console.log(uploadChunkSize);
-  // console.log("--------------------------------");
+//   // console.log("UPLOAD CHUNK SIZE");
+//   // console.log(uploadChunkSize);
+//   // console.log("--------------------------------");
 
-  const uploadChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
+//   const uploadChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
 
-  // console.log("UPLOAD CHUNKS");
-  // console.log(uploadChunks);
-  // console.log(vidSizeMB + "MB");
-  // console.log("--------------------------------");
+//   // console.log("UPLOAD CHUNKS");
+//   // console.log(uploadChunks);
+//   // console.log(vidSizeMB + "MB");
+//   // console.log("--------------------------------");
 
-  //check if vid downloaded
-  // if (!fs.existsSync(thumbnailSavePath) || !fs.existsSync(vidSavePath)) {
-  if (!fs.existsSync(vidSavePath)) {
-    const error = new Error("VidNOT downloaded");
-    error.function = "uploadVidFS";
-    error.content = inputObj;
-    throw error;
-  }
+//   //check if vid downloaded
+//   // if (!fs.existsSync(thumbnailSavePath) || !fs.existsSync(vidSavePath)) {
+//   if (!fs.existsSync(vidSavePath)) {
+//     const error = new Error("VidNOT downloaded");
+//     error.function = "uploadVidFS";
+//     error.content = inputObj;
+//     throw error;
+//   }
 
-  // //upload vid
-  const vidParams = {
-    thumbnailPath: thumbnailSavePath,
-    uploadChunkSize: uploadChunkSize,
-    vidSizeBytes: vidSizeBytes,
-    uploadChunks: uploadChunks,
-    vidName: vidName,
-    savePath: vidSavePath,
-    tgUploadId: tgUploadId,
-  };
+//   // //upload vid
+//   const vidParams = {
+//     thumbnailPath: thumbnailSavePath,
+//     uploadChunkSize: uploadChunkSize,
+//     vidSizeBytes: vidSizeBytes,
+//     uploadChunks: uploadChunks,
+//     vidName: vidName,
+//     savePath: vidSavePath,
+//     tgUploadId: tgUploadId,
+//   };
 
-  const uploadChunkData = await uploadVidChunk(vidParams);
+//   const uploadChunkData = await uploadVidChunk(vidParams);
 
-  // console.log("VID PARAMS");
-  // console.log(vidParams);
-  // console.log("--------------------------------");
+//   // console.log("VID PARAMS");
+//   // console.log(vidParams);
+//   // console.log("--------------------------------");
 
-  // console.log("VID UPLOAD DATA");s
-  // console.log(vidUploadData);
-  // console.log("--------------------------------");
+//   // console.log("VID UPLOAD DATA");s
+//   // console.log(vidUploadData);
+//   // console.log("--------------------------------");
 
-  // if (!vidUploadData) return null;
-};
+//   // if (!vidUploadData) return null;
+// };
 
-export const uploadVidChunk = async (inputObj) => {
-  if (!inputObj) return null;
-  const { thumbnailPath, uploadChunkSize, uploadChunks, vidName, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
+// export const uploadVidChunk = async (inputObj) => {
+//   if (!inputObj) return null;
+//   const { thumbnailPath, uploadChunkSize, uploadChunks, vidName, savePath, dateNormal, vidSizeBytes, tgUploadId } = inputObj;
 
-  const chunkObj = { ...inputObj };
+//   const chunkObj = { ...inputObj };
 
-  // console.log("upload VIDFS CHUNK SIZE");
-  // console.log(uploadChunkSize);
-  // console.log("--------------------------------");
+//   // console.log("upload VIDFS CHUNK SIZE");
+//   // console.log(uploadChunkSize);
+//   // console.log("--------------------------------");
 
-  const chunkDataArray = [];
-  for (let i = 0; i < uploadChunks; i++) {
-    if (!scrapeState.scrapeActive) return null;
-    try {
-      //define chunk start end
-      const start = i * uploadChunkSize;
-      const end = Math.min(vidSizeBytes, start + uploadChunkSize);
+//   const chunkDataArray = [];
+//   for (let i = 0; i < uploadChunks; i++) {
+//     if (!scrapeState.scrapeActive) return null;
+//     try {
+//       //define chunk start end
+//       const start = i * uploadChunkSize;
+//       const end = Math.min(vidSizeBytes, start + uploadChunkSize);
 
-      chunkObj.start = start;
-      chunkObj.end = end;
-      chunkObj.chunkNumber = i; //THIS WILL BREAK THINGS
+//       chunkObj.start = start;
+//       chunkObj.end = end;
+//       chunkObj.chunkNumber = i; //THIS WILL BREAK THINGS
 
-      // chunkParams.chunkStart = i * uploadChunkSize;
-      // chunkParams.chunkEnd = Math.min(vidSizeBytes, chunkParams.chunkStart + uploadChunkSize);
-      // chunkParams.chunkLength = chunkParams.chunkEnd - chunkParams.chunkStart;
-      // chunkParams.chunkNumber = i + 1; //THIS WILL BREAK THINGS
+//       // chunkParams.chunkStart = i * uploadChunkSize;
+//       // chunkParams.chunkEnd = Math.min(vidSizeBytes, chunkParams.chunkStart + uploadChunkSize);
+//       // chunkParams.chunkLength = chunkParams.chunkEnd - chunkParams.chunkStart;
+//       // chunkParams.chunkNumber = i + 1; //THIS WILL BREAK THINGS
 
-      console.log("++++++++++++++++++++++++");
-      console.log(`NEW CHUNK! CHUNK START: ${start} | CHUNK END: ${end} | CHUNK NUMBER: ${chunkObj.chunkNumber}`);
+//       console.log("++++++++++++++++++++++++");
+//       console.log(`NEW CHUNK! CHUNK START: ${start} | CHUNK END: ${end} | CHUNK NUMBER: ${chunkObj.chunkNumber}`);
 
-      console.log("CHUNK OBJ");
-      console.log(chunkObj);
+//       console.log("CHUNK OBJ");
+//       console.log(chunkObj);
 
-      const chunkForm = await buildChunkForm(chunkObj);
+//       const chunkForm = await buildChunkForm(chunkObj);
 
-      console.log("CHUNK FORM");
-      console.log(chunkForm);
-      console.log("--------------------------------");
+//       console.log("CHUNK FORM");
+//       console.log(chunkForm);
+//       console.log("--------------------------------");
 
-      const chunkPostData = await tgPostVidFS({ form: chunkForm });
-      if (!chunkPostData) continue;
+//       const chunkPostData = await tgPostVidFS({ form: chunkForm });
+//       if (!chunkPostData) continue;
 
-      chunkDataArray.push(chunkPostData);
-    } catch (e) {
-      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
-      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
-    }
-  }
+//       chunkDataArray.push(chunkPostData);
+//     } catch (e) {
+//       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+//       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
+//     }
+//   }
 
-  return chunkDataArray;
-};
+//   return chunkDataArray;
+// };
 
-export const buildChunkForm = async (inputObj) => {
-  const { savePath, tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
+// export const buildChunkForm = async (inputObj) => {
+//   const { savePath, tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
 
-  const readStream = fs.createReadStream(savePath, { start: start, end: end - 1 });
+//   const readStream = fs.createReadStream(savePath, { start: start, end: end - 1 });
 
-  // Create form data for this chunk
-  const formData = new FormData();
-  formData.append("chat_id", tgUploadId);
-  formData.append("video", readStream, {
-    filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
-    knownLength: end - start,
-  });
+//   // Create form data for this chunk
+//   const formData = new FormData();
+//   formData.append("chat_id", tgUploadId);
+//   formData.append("video", readStream, {
+//     filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
+//     knownLength: end - start,
+//   });
 
-  // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
-  // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
-  // console.log("--------------------------------");
+//   // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
+//   // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
+//   // console.log("--------------------------------");
 
-  //set setting for auto play / streaming
-  formData.append("supports_streaming", "true");
-  formData.append("width", "1280");
-  formData.append("height", "720");
+//   //set setting for auto play / streaming
+//   formData.append("supports_streaming", "true");
+//   formData.append("width", "1280");
+//   formData.append("height", "720");
 
-  //add thumbnail
-  // formData.append("thumb", fs.createReadStream(thumbnailPath));
+//   //add thumbnail
+//   // formData.append("thumb", fs.createReadStream(thumbnailPath));
 
-  return formData;
-};
+//   return formData;
+// };
 
 //  //upload thumbnail
 //  const picParams = {
