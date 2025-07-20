@@ -97,13 +97,20 @@ export const getVidListArray = async (inputObj) => {
   const fileArray = fs.readdirSync(vidSavePath);
   if (!fileArray || !fileArray.length) return null;
 
+  //NEED to do sort before looping through
+  const sortArray = fileArray.sort((a, b) => {
+    const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
+    const numB = parseInt(b.match(/chunk_(\d+)\.mp4/)[1]);
+    return numA - numB;
+  });
+
   //set the number of vids to combine
   const maxVids = Math.ceil(vidUploadSize / vidChunkSize);
 
   const vidListArray = [];
   let currentList = [];
-  for (let i = 0; i < fileArray.length; i++) {
-    const file = fileArray[i];
+  for (let i = 0; i < sortArray.length; i++) {
+    const file = sortArray[i];
 
     //only add .mp4 files
     if (!file.endsWith(".mp4")) continue;
@@ -125,16 +132,7 @@ export const getVidListArray = async (inputObj) => {
   console.log(vidListArray);
   console.log("--------------------------------");
 
-  if (!vidListArray || !vidListArray.length) return null;
-
-  //sort at the end
-  const vidSortArray = vidListArray.sort((a, b) => {
-    const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
-    const numB = parseInt(b.match(/chunk_(\d+)\.mp4/)[1]);
-    return numA - numB;
-  });
-
-  return vidSortArray;
+  return vidListArray;
 };
 
 export const combineVidListArray = async (inputArray, inputObj) => {
