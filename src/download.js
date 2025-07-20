@@ -130,11 +130,11 @@ export const getVidLength = async (inputURL) => {
 
   const vidSeconds = parseFloat(stdout.trim());
 
-  if (isNaN(vidLengthSeconds)) {
+  if (isNaN(vidSeconds)) {
     throw new Error("Could not parse duration from ffprobe output");
   }
 
-  const vidMinutes = Math.floor(vidLengthSeconds / 60);
+  const vidMinutes = Math.floor(vidSeconds / 60);
 
   const timeObj = {
     vidSeconds: vidSeconds,
