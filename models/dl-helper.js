@@ -35,7 +35,7 @@ class DLHelper {
     for (let i = 0; i < downloadChunks; i++) {
       const savePath = `${vidSavePath}chunk_${i + 1}.mp4`;
 
-      if (!(await fsPromises.exists(savePath))) continue;
+      if (!fs.existsSync(savePath)) continue;
 
       try {
         // Check if it's a valid video file using ffprobe
@@ -234,7 +234,7 @@ class DLHelper {
   }
 
   async checkChunkData(chunkPath) {
-    if (!(await fsPromises.exists(chunkPath))) return null;
+    if (!fs.existsSync(chunkPath)) return null;
 
     const stats = await fsPromises.stat(chunkPath);
     if (stats.size === 0) return null;
