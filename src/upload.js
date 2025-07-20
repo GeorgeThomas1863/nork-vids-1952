@@ -92,6 +92,17 @@ export const combineVidFolder = async (inputObj) => {
 
   const vidListChunkArray = await getVidListChunkArray(fileArray);
 
+    //throw error if no vids
+  if (!vidListChunkArray || !vidListChunkArray.length) {
+    const error = new Error("NO VIDS FOUND");
+    error.function = "combineVidFolder";
+    error.content = inputObj;
+    throw error;
+  }
+
+//HERE
+//NOW COMBINE THE VIDS IN EACH CHUNK ARRAY
+
   console.log("VID LIST CHUNK ARRAY");
   console.log(vidListChunkArray);
   console.log("--------------------------------");
@@ -105,13 +116,7 @@ export const combineVidFolder = async (inputObj) => {
   //   }
   // }
 
-  // //throw error if no vids
-  // if (!vidFileArray || !vidFileArray.length) {
-  //   const error = new Error("NO VIDS FOUND");
-  //   error.function = "combineVidFolder";
-  //   error.content = inputObj;
-  //   throw error;
-  // }
+
 
   // //create temp list file for ffmpeg
   // const listFilePath = tempPath + "vid_list.txt";
