@@ -8,6 +8,7 @@ import CONFIG from "../config/config.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
 import { tgSendMessage, tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from "./tg-api.js";
+import { buildCaptionText } from "./util.js";
 
 export const uploadNewVids = async () => {
   const { kcnaWatchDownloaded, kcnaWatchUploaded } = CONFIG;
@@ -48,17 +49,9 @@ export const uploadVidArray = async (inputArray) => {
 };
 
 export const uploadVidFolder = async (inputObj) => {
-  if (!inputObj || !inputObj.thumbnailSavePath || !inputObj.vidSavePath) return null;
+  if (!inputObj) return null;
   const { thumbnailSavePath, vidSavePath, vidData, vidName } = inputObj;
   const { tgUploadId } = CONFIG;
-
-  //check first if vid exists
-  if (!fs.existsSync(vidSavePath)) {
-    const error = new Error("VID NOT DOWNLOADED");
-    error.function = "uploadVidItem";
-    error.content = inputObj;
-    throw error;
-  }
 
   //send title as MESSAGE first (thumbnail looks terrible)
   const titleCaption = await buildCaptionText(inputObj, "title");
@@ -71,38 +64,22 @@ export const uploadVidFolder = async (inputObj) => {
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
 
-  //combine the vids in the directory
-  const vidFolderArray = await combineVidFolder(inputObj);
+  //get array of vid list arrays
+  const vidListArray = await getVidListArray(inputObj);
+  const vidFolderData = await combineVidListArray(vidListArray, inputObj);
+
+  console.log("VID FOLDER DATA");
+  console.log(vidFolderData);
+  console.log("--------------------------------");
+
+  // const vidFolderArray = await combineVidFolder(inputObj);
 };
 
-export const buildCaptionText = async (inputObj, captionType = "title") => {
-  if (!inputObj || !captionType) return null;
-  const { date, type, title } = inputObj;
-
-  const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
-  const titleNormal = `<b>${title} ${type}</b>`;
-
-  let captionText = "";
-  switch (captionType) {
-    case "title":
-      const titleStr = "🇰🇵 🇰🇵 🇰🇵";
-      captionText = `--------------\n\n${titleStr} ${titleNormal} ${titleStr}\n\n--------------`;
-      return captionText;
-
-    case "pic":
-      const picTitleStr = "🇰🇵 🇰🇵 🇰🇵" + "\n\n";
-      captionText = `${picTitleStr}--------------\n\n${titleNormal}\n<i>${dateNormal}</i>\n\n--------------`;
-      return captionText;
-
-    case "vid":
-      break;
-  }
-};
-
-export const combineVidFolder = async (inputObj) => {
+//return array of vid arrays to combine
+export const getVidListArray = async (inputObj) => {
   if (!inputObj || !inputObj.vidSavePath) return null;
   const { vidSavePath } = inputObj;
-  const { tempPath } = CONFIG;
+  const { vidUploadSize, vidChunkSize } = CONFIG;
 
   //throw error if vid folder doesnt exist
   if (!fs.existsSync(vidSavePath)) {
@@ -116,57 +93,13 @@ export const combineVidFolder = async (inputObj) => {
   const fileArray = fs.readdirSync(vidSavePath);
   if (!fileArray || !fileArray.length) return null;
 
-  const vidListArray = await getVidListArray(fileArray);
-
-  //throw error if no vids
-  if (!vidListArray || !vidListArray.length) {
-    const error = new Error("NO VIDS FOUND");
-    error.function = "combineVidFolder";
-    error.content = inputObj;
-    throw error;
-  }
-
-  //HERE
-  //NOW COMBINE THE VIDS IN EACH CHUNK ARRAY
-  const vidListDataArray = [];
-  for (let i = 0; i < vidListArray.length; i++) {
-    try {
-      const vidList = vidListArray[i];
-      const vidListData = await combineVidList(vidList, inputObj);
-      if (!vidListData) continue;
-
-      vidListDataArray.push(vidListData);
-    } catch (e) {
-      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
-    }
-  }
-
-  console.log("VID LIST DATA ARRAY");
-  console.log(vidListDataArray);
-  console.log("--------------------------------");
-
-  return vidListDataArray;
-};
-
-//return array of vid arrays to combine
-export const getVidListArray = async (inputArray) => {
-  if (!inputArray || !inputArray.length) return null;
-  const { vidUploadSize, vidChunkSize } = CONFIG;
-
   //set the number of vids to combine
   const maxVids = Math.ceil(vidUploadSize / vidChunkSize);
 
-  //sort the fuckign array by number HERE
-  const sortArray = inputArray.sort((a, b) => {
-    const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
-    const numB = parseInt(b.match(/chunk_(\d+)\.mp4/)[1]);
-    return numA - numB;
-  });
-
   const vidListArray = [];
   let currentList = [];
-  for (let i = 0; i < sortArray.length; i++) {
-    const file = sortArray[i];
+  for (let i = 0; i < fileArray.length; i++) {
+    const file = fileArray[i];
 
     //only add .mp4 files
     if (!file.endsWith(".mp4")) continue;
@@ -184,10 +117,41 @@ export const getVidListArray = async (inputArray) => {
     vidListArray.push(currentList);
   }
 
-  return vidListArray;
+  //sort at the end
+  const vidSortArray = vidListArray.sort((a, b) => {
+    const numA = parseInt(a.match(/chunk_(\d+)\.mp4/)[1]);
+    const numB = parseInt(b.match(/chunk_(\d+)\.mp4/)[1]);
+    return numA - numB;
+  });
+
+  return vidSortArray;
 };
 
-export const combineVidList = async (inputArray, inputObj) => {
+export const combineVidListArray = async (inputArray, inputObj) => {
+  if (!inputArray || !inputArray.length || !inputObj) return null;
+
+  //NOW COMBINE THE VIDS IN EACH CHUNK ARRAY
+  const vidListDataArray = [];
+  for (let i = 0; i < inputArray.length; i++) {
+    try {
+      const vidList = inputArray[i];
+      const vidListData = await combineVidListItem(vidList, inputObj);
+      if (!vidListData) continue;
+
+      vidListDataArray.push(vidListData);
+    } catch (e) {
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+    }
+  }
+
+  console.log("VID LIST DATA ARRAY");
+  console.log(vidListDataArray);
+  console.log("--------------------------------");
+
+  return vidListDataArray;
+};
+
+export const combineVidListItem = async (inputArray, inputObj) => {
   if (!inputArray || !inputArray.length || !inputObj) return null;
   const { vidName } = inputObj;
   const { tempPath } = CONFIG;
