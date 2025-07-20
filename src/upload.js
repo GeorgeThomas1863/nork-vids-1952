@@ -178,14 +178,14 @@ export const combineVidListItem = async (inputArray, inputObj) => {
     }
   }
 
-  // const ffmpegCommand = `cd "${tempPath}" && ffmpeg -f concat -safe 0 -i "${vidName}_list.txt" -c copy "${path.resolve(outputFilePath)}" -y`;
+  const ffmpegCommand = `ffmpeg -f concat -safe 0 -i "${path.resolve(listFilePath)}" -c copy "${path.resolve(outputFilePath)}" -y`;
 
-  // console.log(`Combining ${inputArray.length} videos from ${vidSavePath}`);
-  // console.log("--------------------------------");
+  console.log(`Combining ${inputArray.length} videos from ${vidSavePath}`);
+  console.log("--------------------------------");
 
-  // //run ffmpeg
-  // const vidListData = await runFfmpeg(ffmpegCommand, fileContent, listFilePath);
-  // return vidListData;
+  //run ffmpeg
+  const vidListData = await runFfmpeg(ffmpegCommand, fileContent, listFilePath);
+  return vidListData;
 };
 
 export const runFfmpeg = async (ffmpegCommand, fileContent, listFilePath) => {
