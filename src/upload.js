@@ -136,7 +136,7 @@ export const getVidListChunkArray = async (inputArray) => {
   const vidListChunkArray = [];
   let currentChunk = [];
   for (let i = 0; i < inputArray.length; i++) {
-    const file = fileArray[i];
+    const file = inputArray[i];
 
     //only add .mp4 files
     if (!file.endsWith(".mp4")) continue;
