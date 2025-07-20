@@ -2,13 +2,17 @@ import fs from "fs";
 import fsPromises from "fs/promises";
 import path from "path";
 import FormData from "form-data";
-import { exec } from "child_process/promises";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 import CONFIG from "../config/config.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
 import { tgSendMessage, tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from "./tg-api.js";
 import { buildCaptionText } from "./util.js";
+
+//some promises thing to run ffmpeg
+const execPromise = promisify(exec);
 
 export const uploadNewVids = async () => {
   const { kcnaWatchDownloaded, kcnaWatchUploaded } = CONFIG;
@@ -153,7 +157,7 @@ export const combineVidListArray = async (inputArray, inputObj) => {
 
 export const combineVidListItem = async (inputArray, inputObj) => {
   if (!inputArray || !inputArray.length || !inputObj) return null;
-  const { vidName } = inputObj;
+  const { vidName, vidSavePath } = inputObj;
   const { tempPath } = CONFIG;
 
   //create temp file for ffmpeg
@@ -170,20 +174,20 @@ export const combineVidListItem = async (inputArray, inputObj) => {
     }
   }
 
-  //run ffmpeg
-  const vidListData = await runFfmpeg(inputArray, listFilePath, outputFilePath);
-  return vidListData;
-};
-
-export const runFfmpeg = async (inputArray, listFilePath, outputFilePath) => {
-  await fsPromises.writeFile(listFilePath, fileContent);
-
-  const ffmpegCommand = `cd "${vidSavePath}" && ffmpeg -f concat -safe 0 -i "videos_list.txt" -c copy "${path.resolve(outputFilePath)}" -y`;
+  const ffmpegCommand = `cd "${vidSavePath}" && ffmpeg -f concat -safe 0 -i "${vidName}_list.txt" -c copy "${path.resolve(outputFilePath)}" -y`;
 
   console.log(`Combining ${inputArray.length} videos from ${vidSavePath}`);
   console.log("--------------------------------");
 
-  const { stderr, stdout } = await exec(ffmpegCommand);
+  //run ffmpeg
+  const vidListData = await runFfmpeg(ffmpegCommand, fileContent, listFilePath);
+  return vidListData;
+};
+
+export const runFfmpeg = async (ffmpegCommand, fileContent, listFilePath) => {
+  await fsPromises.writeFile(listFilePath, fileContent);
+
+  const { stderr, stdout } = await execPromise(ffmpegCommand);
 
   if (stderr) {
     console.log("FFmpeg stderr:", stderr);
