@@ -11,7 +11,7 @@ const execPromise = promisify(exec);
 
 export const downloadNewVids = async () => {
   await getNewVidData();
-  await downloadNewVidArray();
+  // await downloadNewVidArray();
 
   console.log("FINISHED DOWNLOADING NEW VIDS");
   return true;
@@ -74,19 +74,21 @@ export const getVidData = async (inputObj) => {
   }
 
   //get vid length using ffmpeg
-  const vidLength = await getVidLength(vidURL);
+  const vidLengthObj = await getVidLength(vidURL);
 
   console.log("VID LENGTH");
-  console.log(vidLength);
+  console.log(vidLengthObj);
 
-  const vidData = await parseHeaderData(headerData);
+  const headerObj = await parseHeaderData(headerData);
 
-  if (!vidData) {
+  if (!headerObj) {
     const error = new Error("CANT PARSE HEADER DATA");
     error.function = "getVidData";
     error.content = headerData;
     throw error;
   }
+
+  const vidData = { ...headerObj, ...vidLengthObj };
 
   const updateParams = {
     keyToLookup: "vidURL",
@@ -114,20 +116,27 @@ export const getVidLength = async (inputURL) => {
   const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputURL}"`;
   const { stdout, stderr } = await execPromise(cmd);
 
-  console.log("FFPROBE OUTPUT");
-  console.log(stdout);
+  // console.log("FFPROBE OUTPUT");
+  // console.log(stdout);
 
   if (stderr) {
     throw new Error(`FFprobe error: ${stderr}`);
   }
 
-  const vidLength = parseFloat(stdout.trim());
+  const vidLengthSeconds = parseFloat(stdout.trim());
 
-  if (isNaN(vidLength)) {
+  if (isNaN(vidLengthSeconds)) {
     throw new Error("Could not parse duration from ffprobe output");
   }
 
-  return vidLength;
+  const vidLengthMinutes = Math.floor(vidLengthSeconds / 60);
+
+  const timeObj = {
+    vidLengthSeconds: vidLengthSeconds,
+    vidLengthMinutes: vidLengthMinutes,
+  };
+
+  return timeObj;
 };
 
 export const parseHeaderData = async (inputData) => {
