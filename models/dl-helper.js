@@ -69,24 +69,27 @@ class DLHelper {
     // If completedChunkArray is undefined, initialize as empty array
     const completedChunks = completedChunkArray || [];
 
-    const pendingChunkArray = [];
-    for (let i = 0; i < downloadChunks; i++) {
-      if (completedChunks.includes(i)) continue;
+    console.log("downloadChunks");
+    console.log(downloadChunks);
 
-      const start = i * chunkSeconds;
-      const end = Math.min((i + 1) * chunkSeconds, vidSeconds);
-      const chunkLength = end - start;
-      const pendingObj = {
-        index: i,
-        start: start,
-        // end: end,
-        chunkLength: chunkLength,
-      };
+    // const pendingChunkArray = [];
+    // for (let i = 0; i < downloadChunks; i++) {
+    //   if (completedChunks.includes(i)) continue;
 
-      pendingChunkArray.push(pendingObj);
-    }
+    //   const start = i * chunkSeconds;
+    //   const end = Math.min((i + 1) * chunkSeconds, vidSeconds);
+    //   const chunkLength = end - start;
+    //   const pendingObj = {
+    //     index: i,
+    //     start: start,
+    //     // end: end,
+    //     chunkLength: chunkLength,
+    //   };
 
-    return pendingChunkArray;
+    //   pendingChunkArray.push(pendingObj);
+    // }
+
+    // return pendingChunkArray;
   }
 
   async processVidQueue() {
