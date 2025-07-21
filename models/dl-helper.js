@@ -171,9 +171,9 @@ class DLHelper {
     }
 
     //define paths
-    const chunkName = `chunk_${chunkIndex + 1}.mp4`;
-    const chunkPath = `${vidSavePath}${chunkName}`;
-    const chunkTempPath = `${tempPath}${chunkPath}.tmp`;
+    const chunkName = `chunk_${chunkIndex + 1}`;
+    const chunkPath = `${vidSavePath}${chunkName}.mp4`;
+    const chunkTempPath = `${tempPath}${chunkName}.tmp`;
 
     console.log("AHHHHHHHHHHHHHHHHHHHH");
     console.log(chunkName);
