@@ -235,6 +235,9 @@ export const downloadVidFS = async (inputObj) => {
   const { vidURL, vidData, vidName } = inputObj;
   const { vidSizeBytes, downloadChunks, vidSeconds } = vidData;
 
+  console.log("DOWNLOAD VID FS");
+  console.log(inputObj);
+
   //define vid save DIRECTORY
   const vidSavePath = `${watchPath}${vidName}_chunks/`;
 
