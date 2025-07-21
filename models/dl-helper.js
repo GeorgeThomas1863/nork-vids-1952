@@ -72,24 +72,24 @@ class DLHelper {
     console.log("downloadChunks");
     console.log(downloadChunks);
 
-    // const pendingChunkArray = [];
-    // for (let i = 0; i < downloadChunks; i++) {
-    //   if (completedChunks.includes(i)) continue;
+    const pendingChunkArray = [];
+    for (let i = 0; i < downloadChunks; i++) {
+      if (completedChunks.includes(i)) continue;
 
-    //   const start = i * chunkSeconds;
-    //   const end = Math.min((i + 1) * chunkSeconds, vidSeconds);
-    //   const chunkLength = end - start;
-    //   const pendingObj = {
-    //     index: i,
-    //     start: start,
-    //     // end: end,
-    //     chunkLength: chunkLength,
-    //   };
+      const start = i * chunkSeconds;
+      const end = Math.min((i + 1) * chunkSeconds, vidSeconds);
+      const chunkLength = end - start;
+      const pendingObj = {
+        index: i,
+        start: start,
+        // end: end,
+        chunkLength: chunkLength,
+      };
 
-    //   pendingChunkArray.push(pendingObj);
-    // }
+      pendingChunkArray.push(pendingObj);
+    }
 
-    // return pendingChunkArray;
+    return pendingChunkArray;
   }
 
   async processVidQueue() {
@@ -174,6 +174,11 @@ class DLHelper {
     const chunkName = `chunk_${chunkIndex + 1}.mp4`;
     const chunkPath = `${vidSavePath}${chunkName}`;
     const chunkTempPath = `${tempPath}${chunkPath}.tmp`;
+
+    console.log("AHHHHHHHHHHHHHHHHHHHH");
+    console.log(chunkName);
+    console.log(chunkPath);
+    console.log(chunkTempPath);
 
     for (let retry = 0; retry < vidRetries; retry++) {
       try {
