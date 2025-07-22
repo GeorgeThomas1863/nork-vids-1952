@@ -1,9 +1,6 @@
 //TO DO:
-
-//DOWNLOAD BY TIME WORKS BUT INCREDIBLY SLOW. THROWING OUT AFTER HERE AND REVERTING. 
-
-//new plan to get vid length in the headers
-//download is still fucked, now something in common wiht hte upload 
+// REBUILD DOWNLOAD
+// UPLOAD DIDNT WORK FROM THE BEGINNING, rebuild for scraper too
 
 //VID UPLOAD NOT QUITE WORKING, FIGURE OUT ERROR
 //STORE VID UPLOAD DATA

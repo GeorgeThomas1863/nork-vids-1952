@@ -1,13 +1,7 @@
-import fs from "fs";
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
-import { exec } from "child_process";
-import { promisify } from "util";
-
-//some promises thing to run ffmpeg
-const execPromise = promisify(exec);
 
 export const downloadNewVids = async () => {
   await getNewVidData();
@@ -59,11 +53,8 @@ export const parseVidDataArray = async (inputArray) => {
 
 export const getVidData = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL) return null;
-  const { vidURL, type } = inputObj;
   const { kcnaWatchContent } = CONFIG;
-
-  //dont waste time getting headers for full
-  if (type === "Full Broadcast") return null;
+  const { vidURL } = inputObj;
 
   const headerModel = new KCNA({ url: vidURL });
   const headerData = await headerModel.getMediaHeaders();
@@ -76,30 +67,14 @@ export const getVidData = async (inputObj) => {
     throw error;
   }
 
-  const headerObj = await parseHeaderData(headerData);
+  const vidData = await parseHeaderData(headerData);
 
-  if (!headerObj) {
+  if (!vidData) {
     const error = new Error("CANT PARSE HEADER DATA");
     error.function = "getVidData";
     error.content = headerData;
     throw error;
   }
-
-  //get vid length using ffmpeg
-  const vidLengthObj = await getVidLength(vidURL);
-
-  //throw error if cant get vid length
-  if (!vidLengthObj) {
-    const error = new Error("CANT GET VID LENGTH");
-    error.function = "getVidLength";
-    error.content = headerData;
-    throw error;
-  }
-
-  const vidData = { ...headerObj, ...vidLengthObj };
-
-  console.log("VID DATA");
-  console.log(vidData);
 
   const updateParams = {
     keyToLookup: "vidURL",
@@ -114,39 +89,7 @@ export const getVidData = async (inputObj) => {
   console.log("UPDATE DATA");
   console.log(updateData);
 
-  //TURN BACK ON
   return vidData;
-};
-
-export const getVidLength = async (inputURL) => {
-  if (!inputURL) return null;
-  const { chunkSeconds } = CONFIG;
-
-  const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputURL}"`;
-  const { stdout, stderr } = await execPromise(cmd);
-
-  if (stderr) {
-    throw new Error(`FFprobe error: ${stderr}`);
-  }
-
-  const vidSeconds = parseFloat(stdout.trim());
-
-  if (isNaN(vidSeconds)) {
-    throw new Error("Could not parse duration from ffprobe output");
-  }
-
-  const vidMinutes = Math.floor(vidSeconds / 60);
-
-  //chunkSeconds being default chunk length
-  const downloadChunks = Math.ceil(vidSeconds / chunkSeconds);
-
-  const timeObj = {
-    vidSeconds: vidSeconds,
-    vidMinutes: vidMinutes,
-    downloadChunks: downloadChunks,
-  };
-
-  return timeObj;
 };
 
 export const parseHeaderData = async (inputData) => {
@@ -157,6 +100,7 @@ export const parseHeaderData = async (inputData) => {
 
   const vidSizeBytes = +contentRange.split("/")[1];
   const vidSizeMB = Math.round(vidSizeBytes / (1024 * 1024));
+  const downloadChunks = Math.ceil(vidSizeBytes / vidChunkSize);
 
   const etag = inputData.etag;
   const serverData = inputData.server;
@@ -165,6 +109,7 @@ export const parseHeaderData = async (inputData) => {
   const headerObj = {
     vidSizeBytes: vidSizeBytes,
     vidSizeMB: vidSizeMB,
+    downloadChunks: downloadChunks,
     etag: etag,
     serverData: serverData,
     vidEditDate: vidEditDate,
@@ -234,29 +179,18 @@ export const downloadNewVidArray = async () => {
 
 export const downloadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
-  const { watchPath } = CONFIG;
+  const { tempPath, watchPath } = CONFIG;
   const { vidURL, vidData, vidName } = inputObj;
-  const { vidSizeBytes, downloadChunks, vidSeconds } = vidData;
+  const { vidSizeBytes, downloadChunks } = vidData;
 
-  console.log("DOWNLOAD VID FS");
-  console.log(inputObj);
+  const savePath = `${watchPath}${vidName}.mp4`;
 
-  //define vid save DIRECTORY
-  const vidSavePath = `${watchPath}${vidName}_chunks/`;
-
-  // Create the sub folder for DIRECTORY
-  if (!fs.existsSync(vidSavePath)) {
-    fs.mkdirSync(vidSavePath, { recursive: true });
-  }
-
-  //build params
   const params = {
     url: vidURL,
+    savePath: savePath,
+    vidTempPath: tempPath,
     downloadChunks: downloadChunks,
     vidSizeBytes: vidSizeBytes,
-    vidSavePath: vidSavePath,
-    vidName: vidName,
-    vidSeconds: vidSeconds,
   };
 
   const vidModel = new KCNA(params);
@@ -266,7 +200,7 @@ export const downloadVidFS = async (inputObj) => {
   //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
   const returnObj = {
     vidDownloaded: true,
-    vidSavePath: vidSavePath,
+    vidSavePath: vidObj.savePath,
     chunksProcessed: vidObj.chunksProcessed,
   };
 
