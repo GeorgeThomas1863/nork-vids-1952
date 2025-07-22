@@ -163,7 +163,7 @@ class DLHelper {
     const { vidRetries, tempPath } = CONFIG;
 
     // Make sure we have all required properties
-    if (!url || !vidSavePath || !chunkIndex || !start || !chunkLength) {
+    if (!url || !vidSavePath || !chunkLength) {
       console.log("Error: Missing required properties for downloadVidChunk");
       console.log("RECEIVED: " + JSON.stringify(this.dataObject));
       return null;
