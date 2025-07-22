@@ -120,6 +120,7 @@ export const getVidData = async (inputObj) => {
 
 export const getVidLength = async (inputURL) => {
   if (!inputURL) return null;
+  const { chunkSeconds } = CONFIG;
 
   const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputURL}"`;
   const { stdout, stderr } = await execPromise(cmd);
@@ -136,9 +137,13 @@ export const getVidLength = async (inputURL) => {
 
   const vidMinutes = Math.floor(vidSeconds / 60);
 
+  //chunkSeconds being default chunk length
+  const downloadChunks = Math.ceil(vidSeconds / chunkSeconds);
+
   const timeObj = {
     vidSeconds: vidSeconds,
     vidMinutes: vidMinutes,
+    downloadChunks: downloadChunks,
   };
 
   return timeObj;
@@ -152,7 +157,6 @@ export const parseHeaderData = async (inputData) => {
 
   const vidSizeBytes = +contentRange.split("/")[1];
   const vidSizeMB = Math.round(vidSizeBytes / (1024 * 1024));
-  const downloadChunks = Math.ceil(vidSizeBytes / vidChunkSize);
 
   const etag = inputData.etag;
   const serverData = inputData.server;
@@ -161,7 +165,6 @@ export const parseHeaderData = async (inputData) => {
   const headerObj = {
     vidSizeBytes: vidSizeBytes,
     vidSizeMB: vidSizeMB,
-    downloadChunks: downloadChunks,
     etag: etag,
     serverData: serverData,
     vidEditDate: vidEditDate,
