@@ -185,14 +185,12 @@ class DLHelper {
         // Use FFmpeg to download a specific time segment as a complete video
         const ffmpegCmd = [
           "ffmpeg",
-          "-analyzeduration",
-          "10M",
-          "-probesize",
-          "10M",
           "-ss",
           start.toString(), // Start time
           "-i",
           `"${url}"`, // Input URL
+          "-threads",
+          "0",
           "-t",
           chunkLength.toString(), // Duration
           "-c",
