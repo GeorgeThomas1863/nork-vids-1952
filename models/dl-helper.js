@@ -40,9 +40,9 @@ class DLHelper {
       try {
         // Check if it's a valid video file using ffprobe
         const cmd = `ffprobe -v error -select_streams v:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 "${savePath}"`;
-        const result = await execPromise(cmd, { encoding: "utf8" }).trim();
+        const { stdout, stderr } = await execPromise(cmd, { encoding: "utf8" });
 
-        if (result !== "video") {
+        if (stdout.trim() !== "video") {
           await fsPromises.unlink(savePath);
           continue;
         }
@@ -57,7 +57,7 @@ class DLHelper {
   }
 
   async createVidQueue() {
-    const { completedChunkArray, downloadChunks, vidSizeBytes, vidSeconds } = this.dataObject;
+    const { downloadChunks, vidSavePath, vidSeconds } = this.dataObject;
     const { chunkSeconds } = CONFIG; //default chunk length
 
     // Make sure we have all required properties
@@ -66,15 +66,11 @@ class DLHelper {
       return [];
     }
 
-    // If completedChunkArray is undefined, initialize as empty array
-    const completedChunks = completedChunkArray || [];
-
-    console.log("downloadChunks");
-    console.log(downloadChunks);
-
     const pendingChunkArray = [];
     for (let i = 0; i < downloadChunks; i++) {
-      if (completedChunks.includes(i)) continue;
+      //check if chunk is already saved
+      const chunkPath = `${vidSavePath}chunk_${i + 1}.mp4`;
+      if (fs.existsSync(chunkPath)) continue;
 
       const start = i * chunkSeconds;
       const end = Math.min((i + 1) * chunkSeconds, vidSeconds);
@@ -175,11 +171,6 @@ class DLHelper {
     const chunkPath = `${vidSavePath}${chunkName}.mp4`;
     const chunkTempPath = `${tempPath}${chunkName}.tmp`;
 
-    console.log("AHHHHHHHHHHHHHHHHHHHH");
-    console.log(chunkName);
-    console.log(chunkPath);
-    console.log(chunkTempPath);
-
     for (let retry = 0; retry < vidRetries; retry++) {
       try {
         // Use FFmpeg to download a specific time segment as a complete video
@@ -203,8 +194,9 @@ class DLHelper {
 
         // Execute FFmpeg command
         await execPromise(ffmpegCmd, {
-          stdio: "pipe",
+          stdio: ["ignore", "pipe", "pipe"], // Ignore stdin, pipe stdout/stderr
           encoding: "utf8",
+          maxBuffer: 1024 * 1024 * 10, // 10MB buffer
         });
 
         // Verify the output file exists and is valid
@@ -228,7 +220,13 @@ class DLHelper {
 
         return returnObj;
       } catch (e) {
-        console.error(`Chunk ${chunkIndex} error: ${e.message}`);
+        console.error(`Chunk ${chunkIndex} error:`, e);
+        console.error("FFmpeg command was:", ffmpegCmd);
+
+        // If it's an exec error, log stderr
+        if (e.stderr) {
+          console.error("FFmpeg stderr:", e.stderr);
+        }
 
         if (retry < vidRetries - 1) {
           const delay = await randomDelay(3);
