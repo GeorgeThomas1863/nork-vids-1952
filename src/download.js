@@ -191,11 +191,12 @@ export const downloadVidFS = async (inputObj) => {
     fs.mkdirSync(vidSaveFolder, { recursive: true });
   }
 
-  // const savePath = `${watchPath}${vidName}.mp4`;
+  const vidSavePath = `${watchPath}${vidName}.mp4`;
 
   const params = {
     url: vidURL,
     vidSaveFolder: vidSaveFolder,
+    vidSavePath: vidSavePath,
     downloadChunks: downloadChunks,
     vidSizeBytes: vidSizeBytes,
     vidName: vidName,

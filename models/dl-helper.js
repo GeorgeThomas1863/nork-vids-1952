@@ -195,33 +195,32 @@ class DLHelper {
     }
   }
 
-  // async mergeChunks() {
-  //   const { savePath, vidTempPath, downloadChunks } = this.dataObject;
+  async mergeChunks() {
+    const { vidSavePath, chunkSavePath, downloadChunks } = this.dataObject;
 
-  //   console.log("Merging chunks...");
-  //   const writeStream = fs.createWriteStream(savePath);
+    console.log("Merging chunks...");
+    const writeStream = fs.createWriteStream(vidSavePath);
 
-  //   for (let i = 0; i < downloadChunks; i++) {
-  //     const tempFile = `${vidTempPath}.part${i}`;
-  //     const chunkData = fs.readFileSync(tempFile);
-  //     writeStream.write(chunkData);
-  //     fs.unlinkSync(tempFile); // Clean up temp file
-  //   }
+    for (let i = 0; i < downloadChunks; i++) {
+      const chunkData = fs.readFileSync(chunkSavePath);
+      writeStream.write(chunkData);
+      fs.unlinkSync(chunkSavePath); // Clean up temp file
+    }
 
-  //   writeStream.end();
-  //   console.log("Merge complete");
-  // }
+    writeStream.end();
+    console.log("Merge complete");
+  }
 
-  // async cleanupTempVidFiles() {
-  //   const { vidTempPath, downloadChunks } = this.dataObject;
+  async cleanupTempVidFiles() {
+    const { downloadChunks, vidSaveFolder } = this.dataObject;
 
-  //   for (let i = 0; i < downloadChunks; i++) {
-  //     const tempFile = `${vidTempPath}.part${i}`;
-  //     if (fs.existsSync(tempFile)) {
-  //       fs.unlinkSync(tempFile);
-  //     }
-  //   }
-  // }
+    for (let i = 0; i < downloadChunks; i++) {
+      const chunkSavePath = `${vidSaveFolder}chunk_${i + 1}.mp4`;
+      if (fs.existsSync(chunkSavePath)) {
+        fs.unlinkSync(chunkSavePath);
+      }
+    }
+  }
 }
 
 export default DLHelper;

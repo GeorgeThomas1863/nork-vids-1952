@@ -194,8 +194,8 @@ class KCNA {
       const chunksProcessed = await processModel.processVidQueue();
       vidObj.chunksProcessed = chunksProcessed;
 
-      // const mergeModel = new DLHelper(vidObj);
-      // await mergeModel.mergeChunks();
+      const mergeModel = new DLHelper(vidObj);
+      await mergeModel.mergeChunks();
 
       return vidObj;
     } catch (e) {
