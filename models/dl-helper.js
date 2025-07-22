@@ -73,6 +73,8 @@ class DLHelper {
       if (fs.existsSync(chunkPath)) continue;
 
       const start = i * chunkSeconds;
+      if (start > vidSeconds) break;
+
       const end = Math.min((i + 1) * chunkSeconds, vidSeconds);
       const chunkLength = end - start;
       const pendingObj = {
@@ -163,19 +165,30 @@ class DLHelper {
     // Make sure we have all required properties
     if (!url || !vidSavePath || !chunkIndex || !start || !chunkLength) {
       console.log("Error: Missing required properties for downloadVidChunk");
+      console.log("RECEIVED: " + JSON.stringify(this.dataObject));
+      return null;
+    }
+
+    if (chunkLength < 0) {
+      console.log("Error: CHUNK LENGTH FUCKED");
+      console.log("RECEIVED: " + JSON.stringify(this.dataObject));
       return null;
     }
 
     //define paths
     const chunkName = `chunk_${chunkIndex + 1}`;
     const chunkPath = `${vidSavePath}${chunkName}.mp4`;
-    const chunkTempPath = `${tempPath}${chunkName}.tmp`;
+    const chunkTempPath = `${tempPath}${chunkName}_temp.mp4`;
 
     for (let retry = 0; retry < vidRetries; retry++) {
       try {
         // Use FFmpeg to download a specific time segment as a complete video
         const ffmpegCmd = [
           "ffmpeg",
+          "-analyzeduration",
+          "10M",
+          "-probesize",
+          "10M",
           "-ss",
           start.toString(), // Start time
           "-i",
