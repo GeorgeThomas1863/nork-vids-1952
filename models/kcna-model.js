@@ -194,66 +194,13 @@ class KCNA {
       const chunksProcessed = await processModel.processVidQueue();
       vidObj.chunksProcessed = chunksProcessed;
 
-      const mergeModel = new DLHelper(vidObj);
-      await mergeModel.mergeChunks();
+      // const mergeModel = new DLHelper(vidObj);
+      // await mergeModel.mergeChunks();
 
       return vidObj;
     } catch (e) {
       console.log(e.url + "; " + e.message + "; F BREAK: " + e.function);
       //return null on failure
-      return null;
-    }
-  }
-
-  //VID RETRY
-  async downloadVidSimple() {
-    const { url, savePath, vidId } = this.dataObject;
-
-    try {
-      // await randomDelay(1);
-      const res = await axios({
-        method: "get",
-        url: url,
-        timeout: 15 * 1000, //15 seconds
-        responseType: "stream",
-      });
-
-      if (!res || !res.data) {
-        const error = new Error("FETCH FUCKED");
-        error.url = url;
-        error.fucntion = "VID REQ BACKUP";
-        throw error;
-      }
-
-      const writer = fs.createWriteStream(savePath);
-      const stream = res.data.pipe(writer);
-      const totalSize = parseInt(res.headers["content-length"], 10);
-      const mbSize = +(totalSize / 1048576).toFixed(2);
-      let downloadedSize = 0;
-
-      const consoleStr = "BACKUP VID DOWNLOAD: " + vidId + ".mp4 | SIZE: " + mbSize + "MB";
-      console.log(consoleStr);
-
-      //download shit
-      res.data.on("data", (chunk) => {
-        downloadedSize += chunk.length;
-        if (downloadedSize >= totalSize) {
-        }
-      });
-
-      await new Promise((resolve, reject) => {
-        stream.on("finish", resolve);
-        stream.on("error", reject);
-      });
-
-      const returnObj = {
-        downloadedSize: downloadedSize,
-        totalSize: totalSize,
-      };
-
-      return returnObj;
-    } catch (e) {
-      console.log(url + "; " + e.message + "; F BREAK: " + e.function);
       return null;
     }
   }

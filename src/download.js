@@ -1,3 +1,4 @@
+import fs from "fs";
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
 import dbModel from "../models/db-model.js";
@@ -179,18 +180,25 @@ export const downloadNewVidArray = async () => {
 
 export const downloadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
-  const { tempPath, watchPath } = CONFIG;
+  const { watchPath } = CONFIG;
   const { vidURL, vidData, vidName } = inputObj;
   const { vidSizeBytes, downloadChunks } = vidData;
 
-  const savePath = `${watchPath}${vidName}.mp4`;
+  const vidSaveFolder = `${watchPath}${vidName}_chunks/`;
+
+  // Create the sub folder to save all chunks in
+  if (!fs.existsSync(vidSaveFolder)) {
+    fs.mkdirSync(vidSaveFolder, { recursive: true });
+  }
+
+  // const savePath = `${watchPath}${vidName}.mp4`;
 
   const params = {
     url: vidURL,
-    savePath: savePath,
-    vidTempPath: tempPath,
+    vidSaveFolder: vidSaveFolder,
     downloadChunks: downloadChunks,
     vidSizeBytes: vidSizeBytes,
+    vidName: vidName,
   };
 
   const vidModel = new KCNA(params);
@@ -200,7 +208,7 @@ export const downloadVidFS = async (inputObj) => {
   //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
   const returnObj = {
     vidDownloaded: true,
-    vidSavePath: vidObj.savePath,
+    vidSaveFolder: vidSaveFolder,
     chunksProcessed: vidObj.chunksProcessed,
   };
 

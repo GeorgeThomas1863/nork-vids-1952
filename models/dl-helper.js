@@ -17,11 +17,11 @@ class DLHelper {
   //UTIL for multi thread vid download
 
   async getCompletedVidChunks() {
-    const { vidTempPath, downloadChunks, vidSizeBytes } = this.dataObject;
+    const { vidSaveFolder, downloadChunks, vidSizeBytes } = this.dataObject;
     const { vidChunkSize } = CONFIG;
 
     // Make sure we have all required properties
-    if (!vidTempPath || !downloadChunks || !vidSizeBytes) {
+    if (!vidSaveFolder || !downloadChunks || !vidSizeBytes) {
       console.log("Error: Missing required properties for getCompletedVidChunks");
       return [];
     }
@@ -29,16 +29,18 @@ class DLHelper {
     const completedChunkArray = [];
 
     for (let i = 0; i < downloadChunks; i++) {
-      const tempFile = `${vidTempPath}.part${i}`;
+      //save path for chunk
+      const chunkSavePath = `${vidSaveFolder}chunk_${i + 1}.mp4`;
 
-      if (fs.existsSync(tempFile)) {
-        const stats = fs.statSync(tempFile);
+      if (fs.existsSync(chunkSavePath)) {
+        const stats = fs.statSync(chunkSavePath);
+
+        //MAKE SURE BELOW DOESNT DELETE FIRST / LAST CHUNK
         const expectedSize = i < downloadChunks - 1 ? vidChunkSize : vidSizeBytes - i * vidChunkSize;
-
         if (stats.size === expectedSize) {
           completedChunkArray.push(i);
         } else {
-          fs.unlinkSync(tempFile); // Remove partial chunks
+          fs.unlinkSync(chunkSavePath); // Remove partial chunks
         }
       }
     }
@@ -47,46 +49,44 @@ class DLHelper {
   }
 
   async createVidQueue() {
-    const { completedChunkArray, downloadChunks, vidSizeBytes } = this.dataObject;
+    const { vidSaveFolder, downloadChunks, vidSizeBytes } = this.dataObject;
     const { vidChunkSize } = CONFIG;
-    
+
     // Make sure we have all required properties
     if (!downloadChunks || !vidSizeBytes) {
       console.log("Error: Missing required properties for createVidQueue");
       return [];
     }
 
-    // If completedChunkArray is undefined, initialize as empty array
-    const completedChunks = completedChunkArray || [];
-
     const pendingChunkArray = [];
-
     for (let i = 0; i < downloadChunks; i++) {
-      if (!completedChunks.includes(i)) {
-        const start = i * vidChunkSize;
-        const end = Math.min(start + vidChunkSize - 1, vidSizeBytes - 1);
-        const pendingObj = {
-          index: i,
-          start: start,
-          end: end,
-        };
-        pendingChunkArray.push(pendingObj);
-      }
-    }
+      //DEFINE CHUNK SAVE PATH HERE
+      const chunkSavePath = `${vidSaveFolder}chunk_${i + 1}.mp4`;
+      if (fs.existsSync(chunkSavePath)) continue;
 
+      const start = i * vidChunkSize;
+      const end = Math.min(start + vidChunkSize - 1, vidSizeBytes - 1);
+      const pendingObj = {
+        index: i,
+        start: start,
+        end: end,
+        chunkSavePath: chunkSavePath,
+      };
+      pendingChunkArray.push(pendingObj);
+    }
     return pendingChunkArray;
   }
 
   async processVidQueue() {
     const { completedChunkArray, pendingChunkArray, downloadChunks } = this.dataObject;
     const { vidConcurrent, vidRetries } = CONFIG;
-    
+
     // Make sure we have all required properties
     if (!downloadChunks || !pendingChunkArray) {
       console.log("Error: Missing required properties for processVidQueue");
       return [];
     }
-    
+
     // If completedChunkArray is undefined, initialize as empty array
     const downloadedChunkArray = completedChunkArray ? [...completedChunkArray] : [];
     let remainingChunkArray = [...pendingChunkArray];
@@ -106,6 +106,7 @@ class DLHelper {
           downloadObj.chunkIndex = chunk.index;
           downloadObj.start = chunk.start;
           downloadObj.end = chunk.end;
+          downloadObj.chunkSavePath = chunk.chunkSavePath;
 
           const downloadModel = new DLHelper(downloadObj);
           const downloadPromise = downloadModel.downloadVidChunk();
@@ -121,7 +122,7 @@ class DLHelper {
           if (resultItem.status === "fulfilled" && resultItem.value) {
             downloadedChunkArray.push(resultItem.value.chunkIndex);
           } else {
-            console.error(`Failed chunk ${batch[m].index}: ${resultItem.reason || 'Unknown error'}`);
+            console.error(`Failed chunk ${batch[m].index}: ${resultItem.reason || "Unknown error"}`);
             failedChunkArray.push(batch[m]);
           }
         }
@@ -137,8 +138,8 @@ class DLHelper {
       if (remainingChunkArray.length > 0 && i < vidRetries - 1) {
         console.log(`Retry attempt ${i + 1}/${vidRetries}: ${remainingChunkArray.length} chunks remaining`);
 
-        // Add exponential backoff between retry attempts
-        await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i + 1)));
+        // Add exponential backoff between retry attempts (starting at 100ms)
+        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, i + 1)));
       }
     }
 
@@ -146,11 +147,11 @@ class DLHelper {
   }
 
   async downloadVidChunk() {
-    const { url, vidTempPath, chunkIndex, start, end } = this.dataObject;
+    const { url, chunkIndex, start, end, chunkSavePath } = this.dataObject;
     const { vidRetries } = CONFIG;
 
     // Make sure we have all required properties
-    if (!url || !vidTempPath || chunkIndex === undefined || start === undefined || end === undefined) {
+    if (!url || chunkIndex === undefined || start === undefined || end === undefined) {
       console.log("Error: Missing required properties for downloadVidChunk");
       return null;
     }
@@ -165,16 +166,16 @@ class DLHelper {
           headers: { Range: `bytes=${start}-${end}` },
         });
 
-        // Write chunk to temporary file
-        const tempFile = `${vidTempPath}.part${chunkIndex}`;
-        fs.writeFileSync(tempFile, Buffer.from(res.data));
+        // Write chunk to save path
+        // const tempFile = `${vidTempPath}.part${chunkIndex}`;
+        fs.writeFileSync(chunkSavePath, Buffer.from(res.data));
 
         console.log(`Chunk ${chunkIndex} downloaded (bytes ${start}-${end})`);
 
         //obv put into obj
         const returnObj = {
           chunkIndex: chunkIndex,
-          tempFile: tempFile,
+          chunkSavePath: chunkSavePath,
           start: start,
           end: end,
         };
@@ -194,33 +195,33 @@ class DLHelper {
     }
   }
 
-  async mergeChunks() {
-    const { savePath, vidTempPath, downloadChunks } = this.dataObject;
+  // async mergeChunks() {
+  //   const { savePath, vidTempPath, downloadChunks } = this.dataObject;
 
-    console.log("Merging chunks...");
-    const writeStream = fs.createWriteStream(savePath);
+  //   console.log("Merging chunks...");
+  //   const writeStream = fs.createWriteStream(savePath);
 
-    for (let i = 0; i < downloadChunks; i++) {
-      const tempFile = `${vidTempPath}.part${i}`;
-      const chunkData = fs.readFileSync(tempFile);
-      writeStream.write(chunkData);
-      fs.unlinkSync(tempFile); // Clean up temp file
-    }
+  //   for (let i = 0; i < downloadChunks; i++) {
+  //     const tempFile = `${vidTempPath}.part${i}`;
+  //     const chunkData = fs.readFileSync(tempFile);
+  //     writeStream.write(chunkData);
+  //     fs.unlinkSync(tempFile); // Clean up temp file
+  //   }
 
-    writeStream.end();
-    console.log("Merge complete");
-  }
+  //   writeStream.end();
+  //   console.log("Merge complete");
+  // }
 
-  async cleanupTempVidFiles() {
-    const { vidTempPath, downloadChunks } = this.dataObject;
+  // async cleanupTempVidFiles() {
+  //   const { vidTempPath, downloadChunks } = this.dataObject;
 
-    for (let i = 0; i < downloadChunks; i++) {
-      const tempFile = `${vidTempPath}.part${i}`;
-      if (fs.existsSync(tempFile)) {
-        fs.unlinkSync(tempFile);
-      }
-    }
-  }
+  //   for (let i = 0; i < downloadChunks; i++) {
+  //     const tempFile = `${vidTempPath}.part${i}`;
+  //     if (fs.existsSync(tempFile)) {
+  //       fs.unlinkSync(tempFile);
+  //     }
+  //   }
+  // }
 }
 
 export default DLHelper;
