@@ -192,6 +192,9 @@ class DLHelper {
   async mergeChunks() {
     const { vidSavePath, chunkSavePath, downloadChunks } = this.dataObject;
 
+    console.log("MERGE FUCKING CHUNKS");
+    console.log(this.dataObject);
+
     console.log("Merging chunks...");
     const writeStream = fs.createWriteStream(vidSavePath);
 
