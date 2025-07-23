@@ -206,9 +206,12 @@ export const downloadVidFS = async (inputObj) => {
   const vidObj = await vidModel.downloadVidMultiThread();
   if (!vidObj) return null;
 
-  //RECHUNK THE SHIT HERE
+  //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
 
-  //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
+  //CREATE FOLDER TO SAVE CHUNKS IN 
+  //ASK CLAUDE FOR CHUNK COMMAND
+
+ 
   const returnObj = {
     vidDownloaded: true,
     vidSavePath: vidSavePath,
