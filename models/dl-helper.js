@@ -17,11 +17,11 @@ class DLHelper {
   //UTIL for multi thread vid download
 
   async getCompletedVidChunks() {
-    const { vidSaveFolder, downloadChunks, vidSizeBytes } = this.dataObject;
+    const { downloadChunks, vidSizeBytes, tempPath } = this.dataObject;
     const { vidChunkSize } = CONFIG;
 
     // Make sure we have all required properties
-    if (!vidSaveFolder || !downloadChunks || !vidSizeBytes) {
+    if (!tempPath || !downloadChunks) {
       console.log("Error: Missing required properties for getCompletedVidChunks");
       return [];
     }
@@ -30,7 +30,7 @@ class DLHelper {
 
     for (let i = 0; i < downloadChunks; i++) {
       //save path for chunk
-      const chunkSavePath = `${vidSaveFolder}chunk_${i + 1}.mp4`;
+      const chunkSavePath = `${tempPath}chunk_${i + 1}.mp4`;
 
       if (fs.existsSync(chunkSavePath)) {
         const stats = fs.statSync(chunkSavePath);
@@ -49,19 +49,13 @@ class DLHelper {
   }
 
   async createVidQueue() {
-    const { vidSaveFolder, downloadChunks, vidSizeBytes } = this.dataObject;
+    const { downloadChunks, vidSizeBytes, tempPath } = this.dataObject;
     const { vidChunkSize } = CONFIG;
-
-    // Make sure we have all required properties
-    if (!downloadChunks || !vidSizeBytes) {
-      console.log("Error: Missing required properties for createVidQueue");
-      return [];
-    }
 
     const pendingChunkArray = [];
     for (let i = 0; i < downloadChunks; i++) {
       //DEFINE CHUNK SAVE PATH HERE
-      const chunkSavePath = `${vidSaveFolder}chunk_${i + 1}.mp4`;
+      const chunkSavePath = `${tempPath}chunk_${i + 1}.mp4`;
       if (fs.existsSync(chunkSavePath)) continue;
 
       const start = i * vidChunkSize;
@@ -212,10 +206,10 @@ class DLHelper {
   }
 
   async cleanupTempVidFiles() {
-    const { downloadChunks, vidSaveFolder } = this.dataObject;
+    const { downloadChunks, tempPath } = this.dataObject;
 
     for (let i = 0; i < downloadChunks; i++) {
-      const chunkSavePath = `${vidSaveFolder}chunk_${i + 1}.mp4`;
+      const chunkSavePath = `${tempPath}chunk_${i + 1}.mp4`;
       if (fs.existsSync(chunkSavePath)) {
         fs.unlinkSync(chunkSavePath);
       }

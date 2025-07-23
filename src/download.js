@@ -180,22 +180,22 @@ export const downloadNewVidArray = async () => {
 
 export const downloadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
-  const { watchPath } = CONFIG;
   const { vidURL, vidData, vidName } = inputObj;
   const { vidSizeBytes, downloadChunks } = vidData;
-
-  const vidSaveFolder = `${watchPath}${vidName}_chunks/`;
+  const { watchPath, tempPath } = CONFIG; //get temp path once and put in obj
 
   // Create the sub folder to save all chunks in
-  if (!fs.existsSync(vidSaveFolder)) {
-    fs.mkdirSync(vidSaveFolder, { recursive: true });
-  }
+  //DO LATER
+  // if (!fs.existsSync(vidSaveFolder)) {
+  //   fs.mkdirSync(vidSaveFolder, { recursive: true });
+  // }
 
+  //download output path
   const vidSavePath = `${watchPath}${vidName}.mp4`;
 
   const params = {
     url: vidURL,
-    vidSaveFolder: vidSaveFolder,
+    tempPath: tempPath,
     vidSavePath: vidSavePath,
     downloadChunks: downloadChunks,
     vidSizeBytes: vidSizeBytes,
@@ -206,10 +206,12 @@ export const downloadVidFS = async (inputObj) => {
   const vidObj = await vidModel.downloadVidMultiThread();
   if (!vidObj) return null;
 
+  //RECHUNK THE SHIT HERE
+
   //HERE CHANGE BELOW BASED ON WHATS IN CONSOLE
   const returnObj = {
     vidDownloaded: true,
-    vidSaveFolder: vidSaveFolder,
+    vidSavePath: vidSavePath,
     chunksProcessed: vidObj.chunksProcessed,
   };
 
