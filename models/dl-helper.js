@@ -190,7 +190,7 @@ class DLHelper {
   }
 
   async mergeChunks() {
-    const { vidSavePath, chunkSavePath, downloadChunks } = this.dataObject;
+    const { vidSavePath, downloadChunks, tempPath } = this.dataObject;
 
     console.log("MERGE FUCKING CHUNKS");
     console.log(this.dataObject);
@@ -199,9 +199,10 @@ class DLHelper {
     const writeStream = fs.createWriteStream(vidSavePath);
 
     for (let i = 0; i < downloadChunks; i++) {
+      const chunkSavePath = `${tempPath}chunk_${i + 1}.mp4`;
       const chunkData = fs.readFileSync(chunkSavePath);
       writeStream.write(chunkData);
-      fs.unlinkSync(chunkSavePath); // Clean up temp file
+      fs.unlinkSync(chunkSavePath);
     }
 
     writeStream.end();
