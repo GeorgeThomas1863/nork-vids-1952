@@ -246,7 +246,7 @@ export const downloadVidFS = async (inputObj) => {
   if (!vidObj) return null;
 
   //check vid downloaded correct size, delete if not
-  const vidSizeCheck = await checkVidSize(vidSavePath, vidSizeBytes);
+  const vidSizeCheck = await checkVidSize(watchPath, vidSizeBytes);
   console.log("VID SIZE CHECK");
   console.log(vidSizeCheck);
   console.log("--------------------------------");
@@ -259,7 +259,7 @@ export const downloadVidFS = async (inputObj) => {
   }
 
   //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
-  const vidChunkData = await chunkVidByLength(watchPath, vidSaveFolder);
+  const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
   if (!vidChunkData) return null;
 
   //delete the original vid
