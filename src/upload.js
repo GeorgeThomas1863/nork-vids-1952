@@ -181,8 +181,8 @@ export const combineVidChunks = async (inputArray, inputObj) => {
 
       //combine chunks
       try {
-        const concatCommand = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
-        const { stderr } = await execAsync(concatCommand);
+        const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
+        const { stderr } = await execAsync(cmd);
       } catch (e) {
         console.log("CONCAT ERROR");
         console.log(e);
