@@ -84,9 +84,11 @@ export const uploadVidItem = async (inputObj) => {
   for (let i = 0; i < chunkNameArrayRaw.length; i++) {
     const chunkName = chunkNameArrayRaw[i];
     const chunkPath = `${vidSaveFolder}${chunkName}`;
-    if (chunkName.endsWith(".mp4") && !chunkName.startsWith("chunk")) {
-      vidChunkArray.push(chunkPath);
-    }
+
+    //fail conditions
+    if (!fs.existsSync(chunkPath) || !chunkName.endsWith(".mp4") || !chunkName.startsWith("chunk_")) continue;
+
+    vidChunkArray.push(chunkPath);
   }
 
   console.log("VID CHUNK ARRAY");
