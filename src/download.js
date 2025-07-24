@@ -1,8 +1,13 @@
 import fs from "fs";
+import path from "path";
+import { exec } from "child_process";
+import { promisify } from "util";
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
+
+const execAsync = promisify(exec);
 
 export const downloadNewVids = async () => {
   await getNewVidData();
@@ -178,49 +183,6 @@ export const downloadNewVidArray = async () => {
   return downloadDataArray;
 };
 
-export const downloadVidFS = async (inputObj) => {
-  if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
-  const { vidURL, vidData, vidName } = inputObj;
-  const { vidSizeBytes, downloadChunks } = vidData;
-  const { watchPath, tempPath } = CONFIG; //get temp path once and put in obj
-
-  // Create the sub folder to save all chunks in
-  //DO LATER
-  // if (!fs.existsSync(vidSaveFolder)) {
-  //   fs.mkdirSync(vidSaveFolder, { recursive: true });
-  // }
-
-  //download output path
-  const vidSavePath = `${watchPath}${vidName}.mp4`;
-
-  const params = {
-    url: vidURL,
-    tempPath: tempPath,
-    vidSavePath: vidSavePath,
-    downloadChunks: downloadChunks,
-    vidSizeBytes: vidSizeBytes,
-    vidName: vidName,
-  };
-
-  const vidModel = new KCNA(params);
-  const vidObj = await vidModel.downloadVidMultiThread();
-  if (!vidObj) return null;
-
-  //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
-
-  //CREATE FOLDER TO SAVE CHUNKS IN 
-  //ASK CLAUDE FOR CHUNK COMMAND
-
- 
-  const returnObj = {
-    vidDownloaded: true,
-    vidSavePath: vidSavePath,
-    chunksProcessed: vidObj.chunksProcessed,
-  };
-
-  return returnObj;
-};
-
 export const downloadThumbnailFS = async (inputObj) => {
   if (!inputObj || !inputObj.thumbnail) return null;
   const { thumbnail, vidName } = inputObj;
@@ -253,4 +215,68 @@ export const downloadThumbnailFS = async (inputObj) => {
   };
 
   return returnObj;
+};
+
+export const downloadVidFS = async (inputObj) => {
+  if (!inputObj || !inputObj.vidURL || !inputObj.vidData) return null;
+  const { vidURL, vidData, vidName } = inputObj;
+  const { vidSizeBytes, downloadChunks } = vidData;
+  const { watchPath, tempPath } = CONFIG; //get temp path once and put in obj
+
+  // Create the sub folder to save all chunks in
+  //DO LATER
+
+  //download output path
+  const vidSavePath = `${watchPath}${vidName}.mp4`;
+
+  const params = {
+    url: vidURL,
+    tempPath: tempPath,
+    vidSavePath: vidSavePath,
+    downloadChunks: downloadChunks,
+    vidSizeBytes: vidSizeBytes,
+    vidName: vidName,
+  };
+
+  const vidModel = new KCNA(params);
+  const vidObj = await vidModel.downloadVidMultiThread();
+  if (!vidObj) return null;
+
+  //make folder to save vid chunks
+  const vidSaveFolder = `${watchPath}${vidName}_chunks/`;
+  if (!fs.existsSync(vidSaveFolder)) {
+    fs.mkdirSync(vidSaveFolder, { recursive: true });
+  }
+
+  //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
+  const vidChunkData = await chunkVidToClipsByLength(vidSavePath, vidSaveFolder);
+  // console.log("VID CHUNK DATA");
+  // console.log(vidChunkData);
+
+  //delete the original vid
+  // fs.unlinkSync(vidSavePath);
+
+  //CREATE FOLDER TO SAVE CHUNKS IN
+  //ASK CLAUDE FOR CHUNK COMMAND
+
+  const returnObj = {
+    vidDownloaded: true,
+    vidSavePath: vidSavePath,
+    chunksProcessed: vidObj.chunksProcessed,
+  };
+
+  return returnObj;
+};
+
+// Split video into segments of specified duration
+export const chunkVidToClipsByLength = async (inputPath, outputFolder) => {
+  const { chunkLengthSeconds } = CONFIG;
+  if (!fs.existsSync(outputFolder)) return null;
+
+  const outputPattern = path.join(outputFolder, "chunk_%03d.mp4");
+  const command = `ffmpeg -i "${inputPath}" -c copy -segment_time ${chunkLengthSeconds} -f segment -reset_timestamps 1 "${outputPattern}"`;
+
+  const { stderr } = await execAsync(command);
+  console.log("Video splitting completed");
+  console.log(stderr); // FFmpeg outputs progress to stderr
 };
