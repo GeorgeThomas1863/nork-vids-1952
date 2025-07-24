@@ -247,6 +247,9 @@ export const downloadVidFS = async (inputObj) => {
 
   //check vid downloaded correct size, delete if not
   const vidSizeCheck = await checkVidSize(vidSavePath, vidSizeBytes);
+  console.log("VID SIZE CHECK");
+  console.log(vidSizeCheck);
+  console.log("--------------------------------");
   if (!vidSizeCheck) return null;
 
   //make folder to save vid chunks
