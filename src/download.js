@@ -297,12 +297,17 @@ export const checkVidSize = async (inputPath, inputSize) => {
   console.log(inputSize);
   console.log("--------------------------------");
 
-  if (!fs.existsSync(inputPath)) return null;
-  const downloadedVidStats = fs.statSync(inputPath);
-  if (downloadedVidStats.size * 1.2 < inputSize) {
-    fs.unlinkSync(inputPath);
-    return null;
-  }
+  const vidExists = fs.existsSync(inputPath);
+  console.log("VID EXISTS");
+  console.log(vidExists);
+  console.log("--------------------------------");
+
+  if (!vidExists) return null;
+  // const downloadedVidStats = fs.statSync(inputPath);
+  // if (downloadedVidStats.size * 1.2 < inputSize) {
+  //   fs.unlinkSync(inputPath);
+  //   return null;
+  // }
 
   return true;
 };
