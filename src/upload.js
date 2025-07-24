@@ -79,8 +79,9 @@ export const uploadVidItem = async (inputObj) => {
   const chunkNameArrayRaw = await fsPromises.readdir(vidSaveFolder);
   if (!chunkNameArrayRaw || !chunkNameArrayRaw.length) return null;
 
-  //loop through and only pull out vid chunks
+  //loop through and pull out arrays of vid chunks with length vidUploadNumber
   const vidChunkArray = [];
+  let uploadArray = [];
   for (let i = 0; i < chunkNameArrayRaw.length; i++) {
     const chunkName = chunkNameArrayRaw[i];
     const chunkPath = `${vidSaveFolder}${chunkName}`;
@@ -88,14 +89,22 @@ export const uploadVidItem = async (inputObj) => {
     //fail conditions
     if (!fs.existsSync(chunkPath) || !chunkName.endsWith(".mp4") || !chunkName.startsWith("chunk_")) continue;
 
-    vidChunkArray.push(chunkPath);
+    uploadArray.push(chunkPath);
+
+    if (uploadArray.length === vidUploadNumber) {
+      vidChunkArray.push(uploadArray);
+      uploadArray = [];
+    }
   }
 
-  // console.log("VID CHUNK ARRAY");
-  // console.log(vidChunkArray);
-  // console.log("--------------------------------");
+  //add last item to array
+  if (uploadArray.length) vidChunkArray.push(uploadArray);
 
-  const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
+  console.log("VID CHUNK ARRAY");
+  console.log(vidChunkArray);
+  console.log("--------------------------------");
+
+  // const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
 
   // console.log("VID UPLOAD ARRAY");
   // console.log(vidUploadArray);
