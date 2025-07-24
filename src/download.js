@@ -1,4 +1,5 @@
 import fs from "fs";
+import fsPromises from "fs/promises";
 import path from "path";
 
 import CONFIG from "../config/config.js";
@@ -244,18 +245,25 @@ export const downloadVidFS = async (inputObj) => {
   const vidObj = await vidModel.downloadVidMultiThread();
   if (!vidObj) return null;
 
+  //check vid downloaded correct size, delete if not
+  const downloadedVidStats = await fsPromises.stat(vidSavePath);
+  if (downloadedVidStats.size * 1.2 < vidSizeBytes) {
+    fs.unlinkSync(vidSavePath);
+    return null;
+  }
+
   //make folder to save vid chunks
   const vidSaveFolder = `${watchPath}${vidName}_chunks/`;
   if (!fs.existsSync(vidSaveFolder)) {
     fs.mkdirSync(vidSaveFolder, { recursive: true });
   }
 
-  // //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
-  // const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
-  // if (!vidChunkData) return null;
+  //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
+  const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
+  if (!vidChunkData) return null;
 
-  // //delete the original vid
-  // fs.unlinkSync(vidSavePath);
+  //delete the original vid
+  fs.unlinkSync(vidSavePath);
 
   const returnObj = {
     vidDownloaded: true,
@@ -269,8 +277,8 @@ export const downloadVidFS = async (inputObj) => {
 
 // Split video into segments of specified duration
 export const chunkVidByLength = async (inputPath, outputFolder) => {
+  if (!fs.existsSync(outputFolder) || !fs.existsSync(inputPath)) return null;
   const { chunkLengthSeconds } = CONFIG;
-  if (!fs.existsSync(outputFolder)) return null;
 
   const outputPattern = path.join(outputFolder, "chunk_%03d.mp4");
   const command = `ffmpeg -i "${inputPath}" -c copy -segment_time ${chunkLengthSeconds} -f segment -reset_timestamps 1 "${outputPattern}"`;
