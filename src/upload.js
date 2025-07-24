@@ -75,11 +75,19 @@ export const uploadVidItem = async (inputObj) => {
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
 
-  //now upload vids
-  const chunkNameArray = await fsPromises.readdir(vidSaveFolder);
-  if (!chunkNameArray || !chunkNameArray.length) return null;
+  //get vid chunk Array
+  const chunkNameArrayRaw = await fsPromises.readdir(vidSaveFolder);
+  if (!chunkNameArrayRaw || !chunkNameArrayRaw.length) return null;
 
-  const vidChunkArray = chunkNameArray.map((chunkName) => `${vidSaveFolder}${chunkName}`);
+  //loop through and only pull out vid chunks
+  const vidChunkArray = [];
+  for (let i = 0; i < chunkNameArrayRaw.length; i++) {
+    const chunkName = chunkNameArrayRaw[i];
+    const chunkPath = `${vidSaveFolder}${chunkName}`;
+    if (chunkName.endsWith(".mp4") && !chunkName.startsWith("chunk")) {
+      vidChunkArray.push(chunkPath);
+    }
+  }
 
   console.log("VID CHUNK ARRAY");
   console.log(vidChunkArray);
