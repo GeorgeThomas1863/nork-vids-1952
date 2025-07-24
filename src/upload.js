@@ -73,12 +73,17 @@ export const uploadVidItem = async (inputObj) => {
   //now upload vids
   const vidChunkArray = await fsPromises.readdir(vidSaveFolder);
 
-  console.log("VID CHUNK ARRAY");
-  console.log(vidChunkArray);
+  // console.log("VID CHUNK ARRAY");
+  // console.log(vidChunkArray);
+  // console.log("--------------------------------");
+
+  const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
+
+  console.log("VID UPLOAD ARRAY");
+  console.log(vidUploadArray);
   console.log("--------------------------------");
 
-  // const combineVidData = await combineVidChunks(vidChunkArray, inputObj);
-  // if (!combineVidData) return null;
+  // if (!vidUploadArray || !vidUploadArray.length) return null;
 
   // vidChunkArray.sort((a, b) => {
   //   const aName = path.basename(a, path.extname(a));
