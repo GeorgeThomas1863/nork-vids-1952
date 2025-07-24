@@ -249,27 +249,27 @@ export const downloadVidFS = async (inputObj) => {
   }
 
   //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
-  const vidChunkData = await chunkVidToClipsByLength(vidSavePath, vidSaveFolder);
-  // console.log("VID CHUNK DATA");
-  // console.log(vidChunkData);
+  const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
+  if (!vidChunkData) return null;
 
   //delete the original vid
-  // fs.unlinkSync(vidSavePath);
+  fs.unlinkSync(vidSavePath);
 
   //CREATE FOLDER TO SAVE CHUNKS IN
   //ASK CLAUDE FOR CHUNK COMMAND
 
   const returnObj = {
     vidDownloaded: true,
-    vidSavePath: vidSavePath,
+    // vidSavePath: vidSavePath,
     chunksProcessed: vidObj.chunksProcessed,
+    vidSaveFolder: vidSaveFolder,
   };
 
   return returnObj;
 };
 
 // Split video into segments of specified duration
-export const chunkVidToClipsByLength = async (inputPath, outputFolder) => {
+export const chunkVidByLength = async (inputPath, outputFolder) => {
   const { chunkLengthSeconds } = CONFIG;
   if (!fs.existsSync(outputFolder)) return null;
 
@@ -277,6 +277,8 @@ export const chunkVidToClipsByLength = async (inputPath, outputFolder) => {
   const command = `ffmpeg -i "${inputPath}" -c copy -segment_time ${chunkLengthSeconds} -f segment -reset_timestamps 1 "${outputPattern}"`;
 
   const { stderr } = await execAsync(command);
-  console.log("Video splitting completed");
+  console.log("DONE CHUNKING");
   console.log(stderr); // FFmpeg outputs progress to stderr
+
+  return true;
 };
