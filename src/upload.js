@@ -100,11 +100,11 @@ export const uploadVidItem = async (inputObj) => {
   //add last item to array
   if (combineArray.length) vidChunkArray.push(combineArray);
 
-  console.log("VID CHUNK ARRAY");
-  console.log(vidChunkArray);
-  console.log("--------------------------------");
+  // console.log("VID CHUNK ARRAY");
+  // console.log(vidChunkArray);
+  // console.log("--------------------------------");
 
-  // const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
+  const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
 
   // console.log("VID UPLOAD ARRAY");
   // console.log(vidUploadArray);
@@ -161,44 +161,41 @@ export const combineVidChunks = async (inputArray, inputObj) => {
 
   const vidUploadArray = [];
   for (let i = 0; i < inputArray.length; i++) {
-    const uploadArray = [];
-    for (let j = i; j < i + vidUploadNumber && j < inputArray.length; j++) {
-      const chunkItem = inputArray[j];
-      uploadArray.push(chunkItem);
+    for (let j = 0; j < inputArray[i].length; j++) {
+      const chunkItem = inputArray[i][j];
+
+      console.log("CHUNK ITEM");
+      console.log(chunkItem);
+      console.log("--------------------------------");
+
+      // const uploadIndex = Math.floor(i / vidUploadNumber) + 1;
+      // const outputFileName = `${vidName}_${uploadIndex}.mp4`;
+
+      // let concatList = "";
+      // for (const chunk of uploadArray) {
+      //   concatList += `file '${chunk}' \n`;
+      // }
+
+      // fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
+      // const vidUploadPath = `${vidSaveFolder}${outputFileName}`;
+
+      // //combine chunks
+      // try {
+      //   const concatCommand = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
+      //   const { stderr } = await execAsync(concatCommand);
+      // } catch (e) {
+      //   console.log("CONCAT ERROR");
+      //   console.log(e);
+      // } finally {
+      //   fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+      // }
+
+      // vidUploadArray.push(vidUploadPath);
     }
 
-    console.log("UPLOAD ARRAY");
-    console.log(uploadArray);
-    console.log("--------------------------------");
-
-    // const uploadIndex = Math.floor(i / vidUploadNumber) + 1;
-    // const outputFileName = `${vidName}_${uploadIndex}.mp4`;
-
-    // let concatList = "";
-    // for (const chunk of uploadArray) {
-    //   concatList += `file '${chunk}' \n`;
-    // }
-
-    // fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
-    // const vidUploadPath = `${vidSaveFolder}${outputFileName}`;
-
-    // //combine chunks
-    // try {
-    //   const concatCommand = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
-    //   const { stderr } = await execAsync(concatCommand);
-    // } catch (e) {
-    //   console.log("CONCAT ERROR");
-    //   console.log(e);
-    // } finally {
-    //   fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
-    // }
-
-    // vidUploadArray.push(vidUploadPath);
+    // return vidUploadArray;
   }
-
-  // return vidUploadArray;
 };
-
 //uploads thumbnail and vid SEPARATELY (might want to change)
 export const uploadVidFS = async (inputObj) => {
   if (!inputObj) return null;
