@@ -250,15 +250,12 @@ export const downloadVidFS = async (inputObj) => {
     fs.mkdirSync(vidSaveFolder, { recursive: true });
   }
 
-  //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
-  const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
-  if (!vidChunkData) return null;
+  // //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
+  // const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
+  // if (!vidChunkData) return null;
 
-  //delete the original vid
-  fs.unlinkSync(vidSavePath);
-
-  //CREATE FOLDER TO SAVE CHUNKS IN
-  //ASK CLAUDE FOR CHUNK COMMAND
+  // //delete the original vid
+  // fs.unlinkSync(vidSavePath);
 
   const returnObj = {
     vidDownloaded: true,
