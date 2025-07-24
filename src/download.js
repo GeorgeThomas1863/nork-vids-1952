@@ -298,7 +298,7 @@ export const checkVidSize = async (inputPath, inputSize) => {
   console.log("--------------------------------");
 
   // const vidExists = fs.existsSync(inputPath);
-  const vidExists = await fsPromises.access(inputPath);
+  const vidExists = await fsPromises.access(inputPath, fs.constants.F_OK);
   console.log("VID EXISTS");
   console.log(vidExists);
   console.log("--------------------------------");
