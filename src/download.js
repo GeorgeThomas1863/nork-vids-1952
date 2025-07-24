@@ -245,8 +245,11 @@ export const downloadVidFS = async (inputObj) => {
   const vidObj = await vidModel.downloadVidMultiThread();
   if (!vidObj) return null;
 
+  console.log("VID OBJ");
+  console.log(vidObj);
+
   //check vid downloaded correct size, delete if not
-  const downloadedVidStats = await fsPromises.stat(vidSavePath);
+  const downloadedVidStats = fs.statSync(vidSavePath);
   if (downloadedVidStats.size * 1.2 < vidSizeBytes) {
     fs.unlinkSync(vidSavePath);
     return null;
