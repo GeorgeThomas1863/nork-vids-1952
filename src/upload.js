@@ -180,13 +180,18 @@ export const combineVidChunks = async (inputArray, inputObj) => {
       const vidUploadPath = `${vidSaveFolder}${outputFileName}`;
 
       const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
-      console.log("CMD");
-      console.log(cmd);
-      const { stderr } = await execAsync(cmd);
+      // console.log("CMD");
+      // console.log(cmd);
 
-      fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+      //!!!!
+      //HERE, below is fucked, check the command
+      //!!!!
 
-      vidUploadArray.push(vidUploadPath);
+      // const { stderr } = await execAsync(cmd);
+
+      // fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+
+      // vidUploadArray.push(vidUploadPath);
     }
   }
   return vidUploadArray;
