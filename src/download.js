@@ -259,11 +259,11 @@ export const downloadVidFS = async (inputObj) => {
   }
 
   //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
-  const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
+  const vidChunkData = await chunkVidByLength(watchPath, vidSaveFolder);
   if (!vidChunkData) return null;
 
   //delete the original vid
-  fs.unlinkSync(vidSavePath);
+  // fs.unlinkSync(vidSavePath);
 
   const returnObj = {
     vidDownloaded: true,
@@ -297,11 +297,11 @@ export const checkVidSize = async (inputPath, inputSize) => {
   console.log(inputSize);
   console.log("--------------------------------");
   
-  const vidExists = fs.existsSync(inputPath);
+  const vidExists = fs.readdirSync(inputPath);
   console.log("VID EXISTS");
   console.log(vidExists);
   console.log("--------------------------------");
-  
+
 
   // const vidExists = fs.existsSync(inputPath);
 
