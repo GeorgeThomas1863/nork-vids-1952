@@ -33,13 +33,10 @@ export const uploadVidArray = async (inputArray) => {
   for (let i = 0; i < 1; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      // console.log("UPLOAD VID ARRAY ITEM");
-      // console.log(inputArray[i]);
-      // console.log("--------------------------------");
-      const vidDataObj = await uploadVidItem(inputArray[i]);
-      if (!vidDataObj) continue;
+      const vidUploadObj = await uploadVidItem(inputArray[i]);
+      if (!vidUploadObj) continue;
 
-      uploadDataArray.push(vidDataObj);
+      uploadDataArray.push(vidUploadObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
@@ -50,12 +47,12 @@ export const uploadVidArray = async (inputArray) => {
 };
 
 export const uploadVidItem = async (inputObj) => {
-  if (!inputObj || !inputObj.thumbnailSavePath || !inputObj.vidSavePath) return null;
-  const { thumbnailSavePath, vidSavePath, vidData, vidName } = inputObj;
-  const { tgUploadId } = CONFIG;
+  if (!inputObj || !inputObj.vidSaveFolder) return null;
+  const { thumbnailSavePath, vidSaveFolder, vidData, vidName } = inputObj;
+  const { tgUploadId, vidUploadNumber } = CONFIG;
 
   //check first if vid exists
-  if (!fs.existsSync(vidSavePath)) {
+  if (!fs.existsSync(vidSaveFolder)) {
     const error = new Error("VID NOT DOWNLOADED");
     error.function = "uploadVidItem";
     error.content = inputObj;
@@ -74,71 +71,68 @@ export const uploadVidItem = async (inputObj) => {
   if (!titleData || !titleData.result) return null;
 
   //now upload vids
-  const chunkArray = await chunkVid(inputObj);
+  const vidChunkArray = await fsPromises.readdir(vidSaveFolder);
+
+  console.log("VID CHUNK ARRAY");
+  console.log(vidChunkArray);
+  console.log("--------------------------------");
+
+  // const combineVidData = await combineVidChunks(vidChunkArray, inputObj);
+  // if (!combineVidData) return null;
+
+  // vidChunkArray.sort((a, b) => {
+  //   const aName = path.basename(a, path.extname(a));
+  //   const bName = path.basename(b, path.extname(b));
+  //   return aName - bName;
+  // });
+
+  //upload vid
+  // const vidParams = {
+  //   vidName: vidName,
+  //   vidSavePath: vidSaveFolder + outputFileName,
+  // };
 };
 
-export const chunkVid = async (inputObj) => {
-  if (!inputObj || !inputObj.vidSavePath) return null;
-  const { vidSavePath, vidData, vidName } = inputObj;
-  const { vidSizeBytes, vidSizeMB } = vidData;
-  const { uploadChunkSize, tempPath } = CONFIG;  
+//loop through and upload in groups of 20
+export const combineVidChunks = async (inputArray, inputObj) => {
+  if (!inputArray || !inputArray.length) return null;
+  const { vidSaveFolder, vidName } = inputObj;
+  const { vidUploadNumber } = CONFIG;
 
-  const tempVidPath = tempPath + vidName 
-  const totalChunks = Math.ceil(vidSizeBytes / uploadChunkSize);
-
-  //if vid is smaller than chunk size, return inputObj
-  if (uploadChunkSize > vidSizeBytes) return [inputObj];
-
-  //open the vid
-  const vidFile = await fsPromises.open(vidSavePath, "r");
-  if (!vidFile) return null;
-
-  for (let i = 0; i < totalChunks; i++) {
-    const chunkPath = `${tempVidPath}_chunk_${i + 1}.mp4`;
-    const chunkStart = i * uploadChunkSize;
-    const chunkEnd = (i + 1) * uploadChunkSize;
-
-    const outputFile = await fsPromises.open(chunkPath, "w");
-
-    const buffer = Buffer.alloc(64 * 1024); //some shit from claude, double check
-    const readCount = Math.ceil(uploadChunkSize / buffer.length);
-
-    for (let j = 0; j < readCount; j++) {
-      const bytesRead = await vidFile.read(buffer, 0, buffer.length, chunkStart + j * buffer.length);
-      if (bytesRead === 0) break;
-      await outputFile.write(buffer, 0, bytesRead);
+  const vidUploadArray = [];
+  for (let i = 0; i < inputArray.length; i++) {
+    const uploadArray = [];
+    for (let j = i; j < i + vidUploadNumber && j < inputArray.length; j++) {
+      const chunkItem = inputArray[j];
+      uploadArray.push(chunkItem);
     }
 
-    const { bytesRead } = await sourceHandle.read(
-      buffer, 
-      0, 
-      toRead, 
-      startPosition + bytesWritten
-    );
-    
-    if (bytesRead === 0) break;
-    
-    await destHandle.write(buffer, 0, bytesRead);
-    bytesWritten += bytesRead;
+    const uploadIndex = Math.floor(i / vidUploadNumber) + 1;
+    const outputFileName = `${vidName}_${uploadIndex}.mp4`;
 
-
-    
-    const chunkObj = {
-      vidName: vidName,
-      vidSavePath: vidSavePath,
+    let concatList = "";
+    for (const chunk of uploadArray) {
+      concatList += `file '${chunk}' \n`;
     }
+
+    fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
+    const vidUploadPath = `${vidSaveFolder}${outputFileName}`;
+
+    //combine chunks
+    try {
+      const concatCommand = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
+      const { stderr } = await execAsync(concatCommand);
+    } catch (e) {
+      console.log("CONCAT ERROR");
+      console.log(e);
+    } finally {
+      fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+    }
+
+    vidUploadArray.push(vidUploadPath);
   }
 
-
-
-
- 
-
-
-  
-
-  //chunk vid
-
+  return vidUploadArray;
 };
 
 export const buildCaptionText = async (inputObj, captionType = "title") => {
