@@ -1,11 +1,13 @@
 import fs from "fs";
 import path from "path";
-import { exec } from "child_process";
-import { promisify } from "util";
+
 import CONFIG from "../config/config.js";
 import KCNA from "../models/kcna-model.js";
 import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
+
+import { exec } from "child_process";
+import { promisify } from "util";
 
 const execAsync = promisify(exec);
 

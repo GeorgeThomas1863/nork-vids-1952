@@ -7,6 +7,11 @@ import dbModel from "../models/db-model.js";
 import { scrapeState } from "./state.js";
 import { tgSendMessage, tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from "./tg-api.js";
 
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
 export const uploadNewVids = async () => {
   const { kcnaWatchDownloaded, kcnaWatchUploaded } = CONFIG;
   if (!scrapeState.scrapeActive) return null;
