@@ -179,18 +179,14 @@ export const combineVidChunks = async (inputArray, inputObj) => {
       fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
       const vidUploadPath = `${vidSaveFolder}${outputFileName}`;
 
-      //combine chunks
-      try {
-        const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
-        const { stderr } = await execAsync(cmd);
-      } catch (e) {
-        console.log("CONCAT ERROR");
-        console.log(e);
-      } finally {
-        fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
-      }
+      const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
+      console.log("CMD");
+      console.log(cmd);
+      // const { stderr } = await execAsync(cmd);
 
-      vidUploadArray.push(vidUploadPath);
+      // fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+
+      // vidUploadArray.push(vidUploadPath);
     }
   }
   return vidUploadArray;
