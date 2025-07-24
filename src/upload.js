@@ -182,11 +182,11 @@ export const combineVidChunks = async (inputArray, inputObj) => {
       const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
       console.log("CMD");
       console.log(cmd);
-      // const { stderr } = await execAsync(cmd);
+      const { stderr } = await execAsync(cmd);
 
-      // fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+      fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
 
-      // vidUploadArray.push(vidUploadPath);
+      vidUploadArray.push(vidUploadPath);
     }
   }
   return vidUploadArray;
