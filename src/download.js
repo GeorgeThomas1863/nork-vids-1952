@@ -245,15 +245,13 @@ export const downloadVidFS = async (inputObj) => {
   const vidObj = await vidModel.downloadVidMultiThread();
   if (!vidObj) return null;
 
-  console.log("VID OBJ");
-  console.log(vidObj);
-
   //check vid downloaded correct size, delete if not
-  const downloadedVidStats = fs.statSync(vidSavePath);
-  if (downloadedVidStats.size * 1.2 < vidSizeBytes) {
-    fs.unlinkSync(vidSavePath);
-    return null;
-  }
+  const vidSizeCheck = await checkVidSize(vidSavePath, vidSizeBytes);
+
+  console.log("VID SIZE CHECK");
+  console.log(vidSizeCheck);
+  console.log("--------------------------------");
+  if (!vidSizeCheck) return null;
 
   //make folder to save vid chunks
   const vidSaveFolder = `${watchPath}${vidName}_chunks/`;
@@ -289,6 +287,17 @@ export const chunkVidByLength = async (inputPath, outputFolder) => {
   const { stderr } = await execAsync(command);
   console.log("DONE CHUNKING");
   console.log(stderr); // FFmpeg outputs progress to stderr
+
+  return true;
+};
+
+export const checkVidSize = async (inputPath, inputSize) => {
+  if (!fs.existsSync(inputPath)) return null;
+  const downloadedVidStats = fs.statSync(inputPath);
+  if (downloadedVidStats.size * 1.2 < inputSize) {
+    fs.unlinkSync(inputPath);
+    return null;
+  }
 
   return true;
 };
