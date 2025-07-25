@@ -1,5 +1,6 @@
 import axios from "axios";
 import fs from "fs";
+import fsPromises from "fs/promises";
 import DLHelper from "./dl-helper.js";
 import { randomDelay } from "../src/util.js";
 
@@ -201,6 +202,9 @@ class KCNA {
       await mergeModel.mergeChunks();
 
       //CHECK FUCKING VID HERE
+      const vidExists = await fsPromises.exists(vidObj.vidSavePath);
+      console.log("DOES THE FUCKING VID EXIST");
+      console.log(vidExists);
 
       return vidObj;
     } catch (e) {
