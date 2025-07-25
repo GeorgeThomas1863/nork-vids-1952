@@ -175,6 +175,9 @@ class KCNA {
     const { downloadChunks } = this.dataObject;
     const vidObj = { ...this.dataObject };
 
+    console.log("DOWNLOADING VID MULTI THREAD INPUT");
+    console.log(this.dataObject);
+
     try {
       //find shit already downloaded
       const completedModel = new DLHelper(vidObj);
@@ -196,6 +199,8 @@ class KCNA {
 
       const mergeModel = new DLHelper(vidObj);
       await mergeModel.mergeChunks();
+
+      //CHECK FUCKING VID HERE
 
       return vidObj;
     } catch (e) {
