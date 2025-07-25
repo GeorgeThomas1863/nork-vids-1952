@@ -176,7 +176,7 @@ class KCNA {
     const vidObj = { ...this.dataObject };
 
     console.log("DOWNLOADING VID MULTI THREAD INPUT");
-    console.log(this.dataObject);
+    console.log(vidObj);
 
     try {
       //find shit already downloaded
