@@ -174,7 +174,7 @@ export const combineVidChunks = async (inputArray, inputObj) => {
 
   //CREATE THE CONCAT LIST
   let concatList = "";
-  for (const chunk of inputArray[i]) {
+  for (const chunk of inputArray) {
     concatList += `file '${chunk}' \n`;
   }
 
