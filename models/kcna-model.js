@@ -201,14 +201,11 @@ class KCNA {
       const mergeModel = new DLHelper(vidObj);
       await mergeModel.mergeChunks();
 
-      //CHECK FUCKING VID HERE
-      const vidExists2 = await fsPromises.access(vidSavePath, fs.constants.F_OK);
-      console.log("DOES THE FUCKING VID EXIST 2");
-      console.log(vidExists2);
-
       const vidExists = fs.existsSync(vidSavePath);
+      const vidSize = fs.statSync(vidSavePath).size;
       console.log("DOES THE FUCKING VID EXIST");
       console.log(vidExists);
+      console.log(vidSize);
 
       return vidObj;
     } catch (e) {
