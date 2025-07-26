@@ -105,8 +105,8 @@ export const uploadVidItem = async (inputObj) => {
       console.log("UPLOAD DATA");
       console.log(uploadData);
 
-      const vidCaption = `Chunk ${combineVidObj.uploadIndex} of ${combineVidObj.chunksToUpload}<br>
-      Vid Title: ${inputObj.title} ${inputObj.type}<br>
+      const vidCaption = `Chunk ${combineVidObj.uploadIndex} of ${combineVidObj.chunksToUpload}\n
+      Vid Title: ${inputObj.title} ${inputObj.type}\n
       Chunk Filename: ${combineVidObj.uploadFileName}`;
 
       const uploadVidParams = {
@@ -117,7 +117,7 @@ export const uploadVidItem = async (inputObj) => {
 
       const editVidData = await tgEditMessageCaption(uploadVidParams);
 
-      console.log("VID EDIT DATA")
+      console.log("VID EDIT DATA");
       console.log(editVidData);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
@@ -211,7 +211,7 @@ export const combineVidChunks = async (inputArray, inputObj) => {
 
   fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
 
-  //CHECK IF VID EXISTS, THROW ERROR IF IT DOESNT (BE SURE TO TEST THIS)
+  //CHECK IF VID EXISTS, THROW ERROR IF IT DOESNT HERE
   if (!fs.existsSync(combineVidPath)) {
     const error = new Error("COMBINE VID FUCKED, COMBINED VID DOESNT EXIST");
     error.content = "COMBINE COMMAND: " + cmd;
