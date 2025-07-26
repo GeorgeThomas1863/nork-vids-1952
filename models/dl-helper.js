@@ -205,8 +205,21 @@ class DLHelper {
       fs.unlinkSync(chunkSavePath);
     }
 
-    writeStream.end();
-    console.log("Merge complete");
+    //writeStream.end();
+    // console.log("Merge complete");
+
+    // Wait for the write stream to finish before returning
+    await new Promise((resolve, reject) => {
+      writeStream.end();
+      writeStream.on('finish', () => {
+        console.log("Merge complete");
+        resolve();
+      });
+      writeStream.on('error', (error) => {
+        console.error("Error during merge:", error);
+        reject(error);
+      });
+    });
   }
 
   async cleanupTempVidFiles() {
