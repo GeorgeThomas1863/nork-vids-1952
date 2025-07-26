@@ -202,10 +202,10 @@ class KCNA {
       await mergeModel.mergeChunks();
 
       //CHECK FUCKING VID HERE
-      const vidExists = await fsPromises.stat(vidSavePath);
+      const vidExists = await fsPromises.access(vidSavePath, constants.F_OK);
       console.log("DOES THE FUCKING VID EXIST");
-      console.log(vidSavePath);
-      console.log(vidExists.size);
+      console.log(vidExists);
+    
 
       return vidObj;
     } catch (e) {
