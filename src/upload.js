@@ -83,15 +83,20 @@ export const uploadVidItem = async (inputObj) => {
     const combineVidObj = await combineVidChunks(uploadChunks, inputObj);
 
     const uploadObj = { ...combineVidObj, ...inputObj };
+    uploadObj.tgUploadId = tgUploadId;
 
-    console.log(uploadObj);
+    const vidForm = await buildVidForm(uploadObj);
 
-    // const vidForm = await buildVidForm(combineVidPath, inputObj);
-    // console.log("COMBINED VID PATH");
-    // console.log(combineVidPath);
-    // console.log("--------------------------------");
+    console.log("VID FORM");
+    console.log(vidForm);
+
+    const uploadData = await tgPostVidFS({ form: vidForm });
+    console.log("UPLOAD DATA");
+    console.log(uploadData);
   }
 };
+
+//------------------------
 
 export const buildCaptionText = async (inputObj, captionType = "title") => {
   if (!inputObj || !captionType) return null;
@@ -183,34 +188,34 @@ export const combineVidChunks = async (inputArray, inputObj) => {
 };
 
 //REENABLE
-// export const buildVidForm = async (uploadPath, inputObj) => {
-//   const { tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
+export const buildVidForm = async (inputObj) => {
+  const { uploadPath, tgUploadId, uploadFileName } = inputObj;
 
-//   // const readStream = fs.createReadStream(uploadPath, { start: start, end: end - 1 });
-//   const readStream = fs.createReadStream(uploadPath);
+  // const readStream = fs.createReadStream(uploadPath, { start: start, end: end - 1 });
+  const readStream = fs.createReadStream(uploadPath);
 
-//   // Create form data for this chunk
-//   const formData = new FormData();
-//   formData.append("chat_id", tgUploadId);
-//   formData.append("video", readStream, {
-//     filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
-//     knownLength: end - start,
-//   });
+  // Create form data for this chunk
+  const formData = new FormData();
+  formData.append("chat_id", tgUploadId);
+  formData.append("video", readStream, {
+    filename: uploadFileName,
+    // knownLength: end - start,
+  });
 
-//   // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
-//   // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
-//   // console.log("--------------------------------");
+  // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
+  // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
+  // console.log("--------------------------------");
 
-//   //set setting for auto play / streaming
-//   formData.append("supports_streaming", "true");
-//   formData.append("width", "1280");
-//   formData.append("height", "720");
+  //set setting for auto play / streaming
+  formData.append("supports_streaming", "true");
+  formData.append("width", "1280");
+  formData.append("height", "720");
 
-//   //add thumbnail
-//   // formData.append("thumb", fs.createReadStream(thumbnailPath));
+  //add thumbnail
+  // formData.append("thumb", fs.createReadStream(thumbnailPath));
 
-//   return formData;
-// };
+  return formData;
+};
 
 //------------------------------
 
