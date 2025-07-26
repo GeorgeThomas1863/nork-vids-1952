@@ -33,9 +33,11 @@ export const uploadNewVids = async () => {
 export const uploadVidArray = async (inputArray) => {
   if (!inputArray || !inputArray.length) return null;
 
+  // console.log("INPUT ARRAY")
+  // console.log(inputArray)
+
   const uploadDataArray = [];
-  // for (let i = 0; i < inputArray.length; i++) {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < inputArray.length; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
       const vidUploadObj = await uploadVidFS(inputArray[i]);
