@@ -245,13 +245,6 @@ export const downloadVidFS = async (inputObj) => {
   const vidObj = await vidModel.downloadVidMultiThread();
   if (!vidObj) return null;
 
-  //check vid downloaded correct size, delete if not
-  // const vidSizeCheck = await checkVidSize(watchPath, vidSizeBytes);
-  // console.log("VID SIZE CHECK");
-  // console.log(vidSizeCheck);
-  // console.log("--------------------------------");
-  // if (!vidSizeCheck) return null;
-
   //make folder to save vid chunks
   const vidSaveFolder = `${watchPath}${vidName}_chunks/`;
   if (!fs.existsSync(vidSaveFolder)) {
@@ -261,9 +254,6 @@ export const downloadVidFS = async (inputObj) => {
   //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
   const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
   if (!vidChunkData) return null;
-
-  //delete the original vid
-  // fs.unlinkSync(vidSavePath);
 
   const returnObj = {
     vidDownloaded: true,
@@ -289,29 +279,3 @@ export const chunkVidByLength = async (inputPath, outputFolder) => {
 
   return true;
 };
-
-// export const checkVidSize = async (inputPath, inputSize) => {
-//   console.log("INPUT PATH");
-//   console.log(inputPath);
-//   console.log("INPUT SIZE");
-//   console.log(inputSize);
-//   console.log("--------------------------------");
-  
-//   const vidExists = fs.readdirSync(inputPath);
-//   console.log("VID EXISTS");
-//   console.log(vidExists);
-//   console.log("--------------------------------");
-
-
-//   // const vidExists = fs.existsSync(inputPath);
-
-
-//   if (!vidExists) return null;
-//   // const downloadedVidStats = fs.statSync(inputPath);
-//   // if (downloadedVidStats.size * 1.2 < inputSize) {
-//   //   fs.unlinkSync(inputPath);
-//   //   return null;
-//   // }
-
-//   return true;
-// };
