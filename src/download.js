@@ -252,8 +252,9 @@ export const downloadVidFS = async (inputObj) => {
   const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
   if (!vidChunkData) return null;
 
-  console.log("DOES VID EXIST HERE");
-  console.log(fs.existsSync(vidSavePath));
+  //delete vid to avoid saving twice
+  if (!fs.existsSync(vidSavePath)) return null;
+  fs.unlinkSync(vidSavePath);
 
   const returnObj = {
     vidDownloaded: true,
