@@ -226,9 +226,6 @@ export const downloadVidFS = async (inputObj) => {
   const { vidSizeBytes, downloadChunks } = vidData;
   const { watchPath, tempPath } = CONFIG; //get temp path once and put in obj
 
-  // Create the sub folder to save all chunks in
-  //DO LATER
-
   //download output path
   const vidSavePath = `${watchPath}${vidName}.mp4`;
 
@@ -254,6 +251,9 @@ export const downloadVidFS = async (inputObj) => {
   //NOW RECHUNK THE MOTHERFUCKER WITH FFMPEG
   const vidChunkData = await chunkVidByLength(vidSavePath, vidSaveFolder);
   if (!vidChunkData) return null;
+
+  console.log("DOES VID EXIST HERE");
+  console.log(fs.existsSync(vidSavePath));
 
   const returnObj = {
     vidDownloaded: true,
