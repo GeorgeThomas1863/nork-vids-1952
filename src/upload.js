@@ -161,6 +161,8 @@ export const uploadCombinedVidChunk = async (inputArray, inputObj) => {
   const editVidData = await tgEditMessageCaption(editCaptionParams);
   if (!editVidData || !editVidData.ok) return null;
 
+  //DELETE VID HERE
+
   return uploadData.result;
 };
 
