@@ -1,6 +1,8 @@
 //TO DO:
 
-//ON VID UPLOAD, seems to be working
+//Check state logic throughout, ADD everything to DISPLAY
+
+//UPLOAD FINALLY WORKING
 
 // BUILD UPLOAD
 
