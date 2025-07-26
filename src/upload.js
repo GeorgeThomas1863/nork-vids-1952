@@ -96,11 +96,11 @@ export const uploadVidFS = async (inputObj) => {
       const uploadVidData = await uploadCombinedVidChunk(vidChunkArray[i], uploadObj);
       if (!uploadVidData) continue;
 
-      //for tracking
-      uploadVidDataArray.push(uploadVidData);
-
       console.log("RETURN PARAMS");
       console.log(uploadVidData);
+
+      //for tracking
+      uploadVidDataArray.push(uploadVidData);
     }
 
     //STEP 3 STORE POSTED CHUNKS
@@ -161,9 +161,12 @@ export const uploadCombinedVidChunk = async (inputArray, inputObj) => {
   const editVidData = await tgEditMessageCaption(editCaptionParams);
   if (!editVidData || !editVidData.ok) return null;
 
-  //DELETE VID HERE
+  //STEP 5: DELETE THE VID
+  fs.unlinkSync(combineVidObj.uploadPath);
 
-  return uploadData.result;
+  const returnObj = { ...combineVidObj, ...uploadData.result };
+
+  return returnObj;
 };
 
 //------------------------
