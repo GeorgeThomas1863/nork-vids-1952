@@ -53,7 +53,7 @@ export const uploadVidArray = async (inputArray) => {
 
 export const uploadVidItem = async (inputObj) => {
   if (!inputObj || !inputObj.vidSaveFolder) return null;
-  const { thumbnailSavePath, vidSaveFolder, vidData, vidName } = inputObj;
+  const { thumbnailSavePath, vidSaveFolder } = inputObj;
   const { tgUploadId, vidUploadNumber } = CONFIG;
 
   //check first if vid exists
@@ -77,28 +77,52 @@ export const uploadVidItem = async (inputObj) => {
 
   //BUILD combined vid to upload
   const vidChunkArray = await getVidChunksFromFolder(inputObj);
+  if (!vidChunkArray || !vidChunkArray.length) return null;
 
+  const uploadVidDataArray = [];
   for (let i = 0; i < vidChunkArray.length; i++) {
-    const uploadChunks = vidChunkArray[i];
-    const combineVidObj = await combineVidChunks(uploadChunks, inputObj);
+    if (!scrapeState.scrapeActive) return null;
+    try {
+      const uploadChunks = vidChunkArray[i];
+      const combineVidObj = await combineVidChunks(uploadChunks, inputObj);
+      if (!combineVidObj) continue;
 
-    const uploadObj = { ...combineVidObj, ...inputObj };
-    uploadObj.tgUploadId = tgUploadId;
+      const formParams = {
+        uploadPath: combineVidObj.uploadPath,
+        uploadFileName: combineVidObj.uploadFileName,
+        tgUploadId: tgUploadId,
+      };
 
-    const vidForm = await buildVidForm(uploadObj);
+      const vidForm = await buildVidForm(formParams);
+      if (!vidForm) continue;
 
-    console.log("VID FORM");
-    console.log(vidForm);
+      // console.log("VID FORM");
+      // console.log(vidForm);
 
-    const uploadData = await tgPostVidFS({ form: vidForm });
-    if (!uploadData || !uploadData.ok) continue;
-    uploadObj.uploadData = uploadData.result;
+      const uploadData = await tgPostVidFS({ form: vidForm });
+      if (!uploadData || !uploadData.ok) continue;
 
-    console.log("UPLOAD OBJECT AFTER UPLOAD");
-    console.log(uploadObj);
+      console.log("UPLOAD DATA");
+      console.log(uploadData);
 
-    //edit vid caption
-    // const vidCaption =
+      const vidCaption = `Chunk ${combineVidObj.uploadIndex} of ${combineVidObj.chunksToUpload}<br>
+      Vid Title: ${inputObj.title} ${inputObj.type}<br>
+      Chunk Filename: ${combineVidObj.uploadFileName}`;
+
+      const uploadVidParams = {
+        editChannelId: uploadData.result.chat.id,
+        messageId: uploadData.result.message_id,
+        caption: vidCaption,
+      };
+
+      const editVidData = await tgEditMessageCaption(uploadVidParams);
+
+      console.log("VID EDIT DATA")
+      console.log(editVidData);
+    } catch (e) {
+      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
+    }
 
     // console.log("UPLOAD DATA");
     // console.log(uploadData);
@@ -187,10 +211,19 @@ export const combineVidChunks = async (inputArray, inputObj) => {
 
   fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
 
+  //CHECK IF VID EXISTS, THROW ERROR IF IT DOESNT (BE SURE TO TEST THIS)
+  if (!fs.existsSync(combineVidPath)) {
+    const error = new Error("COMBINE VID FUCKED, COMBINED VID DOESNT EXIST");
+    error.content = "COMBINE COMMAND: " + cmd;
+    error.function = "combineVidChunks";
+    throw error;
+  }
+
   const returnObj = {
     uploadFileName: outputFileName,
     uploadPath: combineVidPath,
     uploadIndex: uploadIndex,
+    chunksToUpload: inputArray.length,
   };
 
   return returnObj;
@@ -200,7 +233,6 @@ export const combineVidChunks = async (inputArray, inputObj) => {
 export const buildVidForm = async (inputObj) => {
   const { uploadPath, tgUploadId, uploadFileName } = inputObj;
 
-  // const readStream = fs.createReadStream(uploadPath, { start: start, end: end - 1 });
   const readStream = fs.createReadStream(uploadPath);
 
   // Create form data for this chunk
@@ -211,17 +243,18 @@ export const buildVidForm = async (inputObj) => {
     // knownLength: end - start,
   });
 
-  // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
-  // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
-  // console.log("--------------------------------");
-
   //set setting for auto play / streaming
   formData.append("supports_streaming", "true");
   formData.append("width", "1280");
   formData.append("height", "720");
 
-  //add thumbnail
-  // formData.append("thumb", fs.createReadStream(thumbnailPath));
+  //error condition
+  if (!readStream || !formData) {
+    const error = new Error("BUILD VID FORM FUCKED");
+    error.content = "FORMD ATA: " + formData;
+    error.function = "buildVidForm";
+    throw error;
+  }
 
   return formData;
 };
