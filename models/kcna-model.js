@@ -173,7 +173,7 @@ class KCNA {
   //complex multi thread download
   async downloadVidMultiThread() {
     //get obj data
-    const { downloadChunks, vidSavePath } = this.dataObject;
+    const { downloadChunks, vidSavePath, vidSizeBytes } = this.dataObject;
     const vidObj = { ...this.dataObject };
 
     console.log("DOWNLOADING VID MULTI THREAD INPUT");
@@ -201,11 +201,12 @@ class KCNA {
       const mergeModel = new DLHelper(vidObj);
       await mergeModel.mergeChunks();
 
-      const vidExists = fs.existsSync(vidSavePath);
+      //check if vid exists delete it if fucked
+      if (!fs.existsSync(vidSavePath)) return null;
       const vidSize = fs.statSync(vidSavePath).size;
-      console.log("DOES THE FUCKING VID EXIST");
-      console.log(vidExists);
-      console.log(vidSize);
+      if (vidSize * 1.2 < vidSizeBytes) {
+        fs.unlinkSync(vidSavePath);
+      }
 
       return vidObj;
     } catch (e) {

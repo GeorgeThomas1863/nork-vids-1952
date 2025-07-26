@@ -205,7 +205,7 @@ class DLHelper {
       fs.unlinkSync(chunkSavePath);
     }
 
-    // Wait for the write stream to finish before returning (Cursor suggsetion)
+    // CRITICAL FOR PROPER AWAITING AND LATER CHECKS
     await new Promise((resolve, reject) => {
       writeStream.on('finish', () => {
         console.log("Merge complete");
