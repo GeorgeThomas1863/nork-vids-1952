@@ -114,6 +114,8 @@ export const tgPostVidFS = async (inputParams) => {
 
   const url = `https://api.telegram.org/bot${token}/sendVideo`;
 
+  console.log(url);
+
   try {
     const res = await axios.post(url, form, {
       headers: form.getHeaders(),
@@ -121,8 +123,8 @@ export const tgPostVidFS = async (inputParams) => {
       maxContentLength: Infinity,
     });
 
-    // console.log("!!!!!!RES");
-    // console.log(res.data);
+    console.log("!!!!!!RES");
+    console.log(res.data);
 
     return res.data;
   } catch (e) {
