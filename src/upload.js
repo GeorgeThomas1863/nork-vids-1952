@@ -79,6 +79,9 @@ export const uploadVidItem = async (inputObj) => {
   const vidChunkArray = await getVidChunksFromFolder(inputObj);
   if (!vidChunkArray || !vidChunkArray.length) return null;
 
+  console.log("CHUNK ARRAY LENGTH");
+  console.log(vidChunkArray.length);
+
   const uploadVidDataArray = [];
   for (let i = 0; i < vidChunkArray.length; i++) {
     if (!scrapeState.scrapeActive) return null;
@@ -102,12 +105,7 @@ export const uploadVidItem = async (inputObj) => {
       const uploadData = await tgPostVidFS({ form: vidForm });
       if (!uploadData || !uploadData.ok) continue;
 
-      // console.log("UPLOAD DATA");
-      // console.log(uploadData);
-
       const captionParams = { ...combineVidObj, ...inputObj };
-      // console.log("CAPTION PARAMS");
-      // console.log(captionParams);
 
       const vidCaption = await buildCaptionText(captionParams, "vid");
 
