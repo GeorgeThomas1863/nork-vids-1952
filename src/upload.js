@@ -83,9 +83,11 @@ export const uploadVidItem = async (inputObj) => {
 
   const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
 
-  // console.log("VID UPLOAD ARRAY");
-  // console.log(vidUploadArray);
-  // console.log("--------------------------------");
+  console.log("VID UPLOAD ARRAY");
+  console.log(vidUploadArray);
+  console.log("--------------------------------");
+
+  //HERE!!!
 
   // if (!vidUploadArray || !vidUploadArray.length) return null;
 
