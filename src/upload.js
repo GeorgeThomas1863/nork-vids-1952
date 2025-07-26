@@ -96,6 +96,9 @@ export const uploadVidItem = async (inputObj) => {
       const vidForm = await buildVidForm(formParams);
       if (!vidForm) continue;
 
+      console.log("VID FORM");
+      console.log(vidForm);
+
       const uploadData = await tgPostVidFS({ form: vidForm });
       if (!uploadData || !uploadData.ok) continue;
 
