@@ -75,22 +75,26 @@ export const uploadVidItem = async (inputObj) => {
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
 
+  //BUILD combined vid to upload
   const vidChunkArray = await getVidChunksFromFolder(inputObj);
 
-  console.log("VID CHUNK ARRAY");
-  console.log(vidChunkArray);
-  console.log("--------------------------------");
+  for (let i = 0; i < vidChunkArray.length; i++) {
+    const uploadChunks = vidChunkArray[i];
+    const combineVidPath = await combineVidChunks(uploadChunks, inputObj);
+    console.log("COMBINED VID PATH");
+    console.log(combineVidPath);
+    console.log("--------------------------------");
+  }
 
-    //HERE!!!
+  //HERE!!!
 
   //SHOULD PROB COMBINE ARRAY ITEMS 1 AT A TIME, SO LOOP THROUGH VID CHUNK ARRAY HERE
 
-  const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
+  // const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
 
-  console.log("VID UPLOAD ARRAY");
-  console.log(vidUploadArray);
-  console.log("--------------------------------");
-
+  // console.log("VID UPLOAD ARRAY");
+  // console.log(vidUploadArray);
+  // console.log("--------------------------------");
 
   // if (!vidUploadArray || !vidUploadArray.length) return null;
 
@@ -168,42 +172,26 @@ export const combineVidChunks = async (inputArray, inputObj) => {
   const { vidSaveFolder, vidName } = inputObj;
   const { vidUploadNumber } = CONFIG;
 
-  // console.log("INPUT ARRAY");
-  // console.log(inputArray);
-  // console.log("--------------------------------");
-
-  const vidUploadArray = [];
-  for (let i = 0; i < inputArray.length; i++) {
-    for (let j = 0; j < inputArray[i].length; j++) {
-      // const chunkItem = inputArray[i][j];
-
-      // console.log("CHUNK ITEM");
-      // console.log(chunkItem);
-      // console.log("--------------------------------");
-
-      const uploadIndex = Math.floor(i / vidUploadNumber) + 1;
-      const outputFileName = `${vidName}_${uploadIndex}.mp4`;
-
-      let concatList = "";
-      for (const chunk of inputArray[i]) {
-        concatList += `file '${chunk}' \n`;
-      }
-
-      fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
-      const vidUploadPath = `${vidSaveFolder}${outputFileName}`;
-
-      const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${vidUploadPath}`;
-      console.log("CMD");
-      console.log(cmd);
-
-      await execAsync(cmd);
-
-      fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
-
-      vidUploadArray.push(vidUploadPath);
-    }
+  //CREATE THE CONCAT LIST
+  let concatList = "";
+  for (const chunk of inputArray[i]) {
+    concatList += `file '${chunk}' \n`;
   }
-  return vidUploadArray;
+
+  fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
+
+  //creat vid upload path
+  const uploadIndex = Math.floor(i / vidUploadNumber) + 1;
+  const outputFileName = `${vidName}_${uploadIndex}.mp4`;
+  const combineVidPath = `${vidSaveFolder}${outputFileName}`;
+
+  //build ffmpeg cmd and execute
+  const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${combineVidPath}`;
+  await execAsync(cmd);
+
+  fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+
+  return combineVidPath;
 };
 //uploads thumbnail and vid SEPARATELY (might want to change)
 // export const uploadVidFS = async (inputObj) => {
