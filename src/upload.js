@@ -96,18 +96,17 @@ export const uploadVidItem = async (inputObj) => {
       const vidForm = await buildVidForm(formParams);
       if (!vidForm) continue;
 
-      // console.log("VID FORM");
-      // console.log(vidForm);
-
       const uploadData = await tgPostVidFS({ form: vidForm });
       if (!uploadData || !uploadData.ok) continue;
 
-      console.log("UPLOAD DATA");
-      console.log(uploadData);
+      // console.log("UPLOAD DATA");
+      // console.log(uploadData);
 
-      const vidCaption = `Chunk ${combineVidObj.uploadIndex} of ${combineVidObj.chunksToUpload}\n
-      Vid Title: ${inputObj.title} ${inputObj.type}\n
-      Chunk Filename: ${combineVidObj.uploadFileName}`;
+      const captionParams = { ...uploadData.result, ...inputObj };
+
+      console.log("CAPTION PARAMS");
+      console.log(captionParams);
+      const vidCaption = await buildCaptionText(captionParams, "vid");
 
       const uploadVidParams = {
         editChannelId: uploadData.result.chat.id,
@@ -151,7 +150,8 @@ export const buildCaptionText = async (inputObj, captionType = "title") => {
       return captionText;
 
     case "vid":
-      break;
+      captionText = `Chunk ${inputObj.uploadIndex} of ${inputObj.chunksToUpload}\n${title} ${type}\nFilename: ${inputObj.uploadFileName}`;
+      return captionText;
   }
 };
 
