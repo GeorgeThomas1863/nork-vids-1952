@@ -39,7 +39,7 @@ export const uploadVidArray = async (inputArray) => {
   for (let i = 0; i < 1; i++) {
     if (!scrapeState.scrapeActive) return null;
     try {
-      const vidUploadObj = await uploadVidItem(inputArray[i]);
+      const vidUploadObj = await uploadVidFS(inputArray[i]);
       if (!vidUploadObj) continue;
 
       uploadDataArray.push(vidUploadObj);
@@ -52,10 +52,14 @@ export const uploadVidArray = async (inputArray) => {
   return uploadDataArray;
 };
 
-export const uploadVidItem = async (inputObj) => {
+export const uploadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidSaveFolder) return null;
-  const { thumbnailSavePath, vidSaveFolder, title, type } = inputObj;
-  const { tgUploadId, vidUploadNumber } = CONFIG;
+  const { vidSaveFolder } = inputObj;
+  const { tgUploadId } = CONFIG;
+
+  //create new tracking obj
+  const uploadObj = { ...inputObj };
+  uploadObj.tgUploadId = tgUploadId;
 
   //check first if vid exists
   if (!fs.existsSync(vidSaveFolder)) {
@@ -65,77 +69,99 @@ export const uploadVidItem = async (inputObj) => {
     throw error;
   }
 
-  //send title as MESSAGE first (thumbnail looks terrible)
+  //STEP 1: POST TITLE CAPTION
   const titleCaption = await buildCaptionText(inputObj, "title");
 
   const titleParams = {
     chatId: tgUploadId,
     text: titleCaption,
   };
-
   const titleData = await tgSendMessage(titleParams);
   if (!titleData || !titleData.result) return null;
 
-  //BUILD combined vid to upload
-  const vidChunkArray = await getVidChunksFromFolder(inputObj);
-  if (!vidChunkArray || !vidChunkArray.length) return null;
-  const chunksToUpload = vidChunkArray.length;
+  //STEP 2: POST VID CHUNKS
+  try {
+    const vidChunkArray = await getVidChunksFromFolder(inputObj);
+    if (!vidChunkArray || !vidChunkArray.length) return null;
+    const chunksToUpload = vidChunkArray.length;
 
-  console.log("CHUNK ARRAY LENGTH");
-  console.log(vidChunkArray.length);
+    uploadObj.chunksToUpload = chunksToUpload;
 
-  const uploadVidDataArray = [];
-  for (let i = 0; i < vidChunkArray.length; i++) {
-    // if (!scrapeState.scrapeActive) return null;
-    try {
-      console.log("STARTING NEW CHUNK UPLOAD");
-      const uploadChunks = vidChunkArray[i];
-      const uploadIndex = i + 1;
+    //loop through each array of chunk arrays to upload
+    const uploadVidDataArray = [];
+    for (let i = 0; i < vidChunkArray.length; i++) {
+      if (!scrapeState.scrapeActive) return null;
 
-      const combineVidObj = await combineVidChunks(uploadChunks, inputObj, uploadIndex);
-      if (!combineVidObj) continue;
+      uploadObj.uploadIndex = i + 1;
+      const uploadVidData = await uploadCombinedVidChunk(vidChunkArray[i], uploadObj);
+      if (!uploadVidData) continue;
 
-      const formParams = {
-        uploadPath: combineVidObj.uploadPath,
-        uploadFileName: combineVidObj.uploadFileName,
-        tgUploadId: tgUploadId,
-      };
-
-      const vidForm = await buildVidForm(formParams);
-      if (!vidForm) continue;
-
-      console.log("VID FORM");
-      console.log(vidForm);
-
-      const uploadData = await tgPostVidFS({ form: vidForm });
-      if (!uploadData || !uploadData.ok) continue;
-
-      const captionParams = {
-        uploadIndex: uploadIndex,
-        chunksToUpload: chunksToUpload,
-        title: title,
-        type: type,
-      };
-
-      const vidCaption = await buildCaptionText(captionParams, "vid");
-
-      const uploadVidParams = {
-        editChannelId: uploadData.result.chat.id,
-        messageId: uploadData.result.message_id,
-        caption: vidCaption,
-      };
-
-      const editVidData = await tgEditMessageCaption(uploadVidParams);
-      if (!editVidData || !editVidData.ok) continue;
-      uploadVidDataArray.push(uploadData.result);
+      //for tracking
+      uploadVidDataArray.push(uploadVidData);
 
       console.log("RETURN PARAMS");
-      console.log(uploadData.result);
-    } catch (e) {
-      console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
-      console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
+      console.log(uploadVidData);
     }
+
+    //STEP 3 STORE POSTED CHUNKS
+  } catch (e) {
+    console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
+    console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
   }
+};
+
+export const uploadCombinedVidChunk = async (inputArray, inputObj) => {
+  if (!inputArray || !inputArray.length || !inputObj);
+  const { uploadIndex, chunksToUpload, vidSaveFolder, vidName, tgUploadId, title, type } = inputObj;
+
+  console.log(`UPLOADING VID CHUNK ${uploadIndex} OF ${chunksToUpload}`);
+
+  //STEP 1: COMBINE VID CHUNKS
+  const combineChunkParams = {
+    inputArray: inputArray,
+    vidSaveFolder: vidSaveFolder,
+    vidName: vidName,
+    uploadIndex: uploadIndex,
+  };
+
+  const combineVidObj = await combineVidChunks(combineChunkParams);
+  if (!combineVidObj) return null;
+
+  //STEP 2: BUILD FORM
+  const formParams = {
+    uploadPath: combineVidObj.uploadPath,
+    uploadFileName: combineVidObj.uploadFileName,
+    tgUploadId: tgUploadId,
+  };
+
+  const vidForm = await buildVidForm(formParams);
+  if (!vidForm) return null;
+
+  //STEP 3: UPLOAD THE VID
+  const uploadData = await tgPostVidFS({ form: vidForm });
+  if (!uploadData || !uploadData.ok) return null;
+
+  //STEP 4: EDIT VID CAPTION
+  const captionParams = {
+    uploadIndex: uploadIndex,
+    chunksToUpload: chunksToUpload,
+    title: title,
+    type: type,
+  };
+
+  const vidCaption = await buildCaptionText(captionParams, "vid");
+  if (!vidCaption) return null;
+
+  const editCaptionParams = {
+    editChannelId: uploadData.result.chat.id,
+    messageId: uploadData.result.message_id,
+    caption: vidCaption,
+  };
+
+  const editVidData = await tgEditMessageCaption(editCaptionParams);
+  if (!editVidData || !editVidData.ok) return null;
+
+  return uploadData.result;
 };
 
 //------------------------
@@ -197,9 +223,9 @@ export const getVidChunksFromFolder = async (inputObj) => {
 };
 
 //loop through and upload in groups of 10 (5 min vids)
-export const combineVidChunks = async (inputArray, inputObj, uploadIndex) => {
-  if (!inputArray || !inputArray.length) return null;
-  const { vidSaveFolder, vidName } = inputObj;
+export const combineVidChunks = async (inputObj) => {
+  if (!inputObj) return null;
+  const { vidSaveFolder, vidName, inputArray, uploadIndex } = inputObj;
 
   //CREATE THE CONCAT LIST
   let concatList = "";
@@ -219,18 +245,17 @@ export const combineVidChunks = async (inputArray, inputObj, uploadIndex) => {
 
   fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
 
-  //CHECK IF VID EXISTS, THROW ERROR IF IT DOESNT HERE
-  if (!fs.existsSync(combineVidPath)) {
+  const returnObj = {
+    uploadFileName: outputFileName,
+    uploadPath: combineVidPath,
+  };
+
+  if (!returnObj || !fs.existsSync(combineVidPath)) {
     const error = new Error("COMBINE VID FUCKED, COMBINED VID DOESNT EXIST");
     error.content = "COMBINE COMMAND: " + cmd;
     error.function = "combineVidChunks";
     throw error;
   }
-
-  const returnObj = {
-    uploadFileName: outputFileName,
-    uploadPath: combineVidPath,
-  };
 
   return returnObj;
 };
@@ -254,10 +279,9 @@ export const buildVidForm = async (inputObj) => {
   formData.append("width", "1280");
   formData.append("height", "720");
 
-  //error condition
-  if (!readStream || !formData) {
+  if (!formData || !readStream) {
     const error = new Error("BUILD VID FORM FUCKED");
-    error.content = "FORMD ATA: " + formData;
+    error.content = "FORM DATA: " + formData;
     error.function = "buildVidForm";
     throw error;
   }

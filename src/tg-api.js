@@ -114,7 +114,7 @@ export const tgPostVidFS = async (inputParams) => {
 
   const url = `https://api.telegram.org/bot${token}/sendVideo`;
 
-  console.log(url);
+  // console.log(url);
 
   try {
     const res = await axios.post(url, form, {
