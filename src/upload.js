@@ -102,10 +102,10 @@ export const uploadVidItem = async (inputObj) => {
       // console.log("UPLOAD DATA");
       // console.log(uploadData);
 
-      const captionParams = { ...uploadData.result, ...inputObj };
-
+      const captionParams = { ...combineVidObj, ...inputObj };
       console.log("CAPTION PARAMS");
       console.log(captionParams);
+
       const vidCaption = await buildCaptionText(captionParams, "vid");
 
       const uploadVidParams = {
