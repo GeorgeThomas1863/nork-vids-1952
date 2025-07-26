@@ -85,30 +85,34 @@ export const uploadVidItem = async (inputObj) => {
     console.log(combineVidPath);
     console.log("--------------------------------");
   }
+};
 
-  //HERE!!!
+//loop through and upload in groups of 20
+export const combineVidChunks = async (inputArray, inputObj) => {
+  if (!inputArray || !inputArray.length) return null;
+  const { vidSaveFolder, vidName } = inputObj;
+  const { vidUploadNumber } = CONFIG;
 
-  //SHOULD PROB COMBINE ARRAY ITEMS 1 AT A TIME, SO LOOP THROUGH VID CHUNK ARRAY HERE
+  //CREATE THE CONCAT LIST
+  let concatList = "";
+  for (const chunk of inputArray) {
+    concatList += `file '${chunk}' \n`;
+  }
 
-  // const vidUploadArray = await combineVidChunks(vidChunkArray, inputObj);
+  fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
 
-  // console.log("VID UPLOAD ARRAY");
-  // console.log(vidUploadArray);
-  // console.log("--------------------------------");
+  //creat vid upload path
+  const uploadIndex = Math.floor(inputArray.length / vidUploadNumber) + 1;
+  const outputFileName = `${vidName}_${uploadIndex}.mp4`;
+  const combineVidPath = `${vidSaveFolder}${outputFileName}`;
 
-  // if (!vidUploadArray || !vidUploadArray.length) return null;
+  //build ffmpeg cmd and execute
+  const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${combineVidPath}`;
+  await execAsync(cmd);
 
-  // vidChunkArray.sort((a, b) => {
-  //   const aName = path.basename(a, path.extname(a));
-  //   const bName = path.basename(b, path.extname(b));
-  //   return aName - bName;
-  // });
+  fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
 
-  //upload vid
-  // const vidParams = {
-  //   vidName: vidName,
-  //   vidSavePath: vidSaveFolder + outputFileName,
-  // };
+  return combineVidPath;
 };
 
 export const buildCaptionText = async (inputObj, captionType = "title") => {
@@ -166,33 +170,6 @@ export const getVidChunksFromFolder = async (inputObj) => {
   return vidChunkArray;
 };
 
-//loop through and upload in groups of 20
-export const combineVidChunks = async (inputArray, inputObj) => {
-  if (!inputArray || !inputArray.length) return null;
-  const { vidSaveFolder, vidName } = inputObj;
-  const { vidUploadNumber } = CONFIG;
-
-  //CREATE THE CONCAT LIST
-  let concatList = "";
-  for (const chunk of inputArray) {
-    concatList += `file '${chunk}' \n`;
-  }
-
-  fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
-
-  //creat vid upload path
-  const uploadIndex = Math.floor(i / vidUploadNumber) + 1;
-  const outputFileName = `${vidName}_${uploadIndex}.mp4`;
-  const combineVidPath = `${vidSaveFolder}${outputFileName}`;
-
-  //build ffmpeg cmd and execute
-  const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${combineVidPath}`;
-  await execAsync(cmd);
-
-  fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
-
-  return combineVidPath;
-};
 //uploads thumbnail and vid SEPARATELY (might want to change)
 // export const uploadVidFS = async (inputObj) => {
 //   if (!inputObj) return null;
