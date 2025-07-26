@@ -9,6 +9,7 @@ import { tgSendMessage, tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from ".
 
 import { exec } from "child_process";
 import { promisify } from "util";
+import { title } from "process";
 
 const execAsync = promisify(exec);
 
@@ -53,7 +54,7 @@ export const uploadVidArray = async (inputArray) => {
 
 export const uploadVidItem = async (inputObj) => {
   if (!inputObj || !inputObj.vidSaveFolder) return null;
-  const { thumbnailSavePath, vidSaveFolder } = inputObj;
+  const { thumbnailSavePath, vidSaveFolder, title, type } = inputObj;
   const { tgUploadId, vidUploadNumber } = CONFIG;
 
   //check first if vid exists
@@ -78,6 +79,7 @@ export const uploadVidItem = async (inputObj) => {
   //BUILD combined vid to upload
   const vidChunkArray = await getVidChunksFromFolder(inputObj);
   if (!vidChunkArray || !vidChunkArray.length) return null;
+  const chunksToUpload = vidChunkArray.length;
 
   console.log("CHUNK ARRAY LENGTH");
   console.log(vidChunkArray.length);
@@ -86,9 +88,11 @@ export const uploadVidItem = async (inputObj) => {
   for (let i = 0; i < vidChunkArray.length; i++) {
     // if (!scrapeState.scrapeActive) return null;
     try {
-      console.log("STARTING NEW CHUNK UPLOAD")
+      console.log("STARTING NEW CHUNK UPLOAD");
       const uploadChunks = vidChunkArray[i];
-      const combineVidObj = await combineVidChunks(uploadChunks, inputObj);
+      const uploadIndex = i + 1;
+
+      const combineVidObj = await combineVidChunks(uploadChunks, inputObj, uploadIndex);
       if (!combineVidObj) continue;
 
       const formParams = {
@@ -106,8 +110,12 @@ export const uploadVidItem = async (inputObj) => {
       const uploadData = await tgPostVidFS({ form: vidForm });
       if (!uploadData || !uploadData.ok) continue;
 
-      const captionParams = { ...combineVidObj, ...inputObj };
-      captionParams.chunksToUpload = vidChunkArray.length;
+      const captionParams = {
+        uploadIndex: uploadIndex,
+        chunksToUpload: chunksToUpload,
+        title: title,
+        type: type,
+      };
 
       const vidCaption = await buildCaptionText(captionParams, "vid");
 
@@ -189,10 +197,9 @@ export const getVidChunksFromFolder = async (inputObj) => {
 };
 
 //loop through and upload in groups of 10 (5 min vids)
-export const combineVidChunks = async (inputArray, inputObj) => {
+export const combineVidChunks = async (inputArray, inputObj, uploadIndex) => {
   if (!inputArray || !inputArray.length) return null;
   const { vidSaveFolder, vidName } = inputObj;
-  const { vidUploadNumber } = CONFIG;
 
   //CREATE THE CONCAT LIST
   let concatList = "";
@@ -203,7 +210,6 @@ export const combineVidChunks = async (inputArray, inputObj) => {
   fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
 
   //creat vid upload path
-  const uploadIndex = Math.floor(inputArray.length / vidUploadNumber);
   const outputFileName = `${vidName}_${uploadIndex}.mp4`;
   const combineVidPath = `${vidSaveFolder}${outputFileName}`;
 
@@ -224,7 +230,6 @@ export const combineVidChunks = async (inputArray, inputObj) => {
   const returnObj = {
     uploadFileName: outputFileName,
     uploadPath: combineVidPath,
-    uploadIndex: uploadIndex,
   };
 
   return returnObj;
