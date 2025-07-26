@@ -124,11 +124,13 @@ export const tgPostVidFS = async (inputParams) => {
     });
 
     console.log("!!!!!!RES");
-    console.log(res.data);
+    console.log(res);
 
     return res.data;
   } catch (e) {
     if (e.response && e.response.data) {
+      console.log("RES ERROR")
+      console.log(e);
       //check token
       const checkData = await checkToken(e.response.data);
 
