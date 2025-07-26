@@ -9,7 +9,6 @@ import { tgSendMessage, tgPostPicFS, tgPostVidFS, tgEditMessageCaption } from ".
 
 import { exec } from "child_process";
 import { promisify } from "util";
-import { title } from "process";
 
 const execAsync = promisify(exec);
 
@@ -42,6 +41,7 @@ export const uploadVidArray = async (inputArray) => {
       const vidUploadObj = await uploadVidFS(inputArray[i]);
       if (!vidUploadObj) continue;
 
+      //for tracking
       uploadDataArray.push(vidUploadObj);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
@@ -55,7 +55,7 @@ export const uploadVidArray = async (inputArray) => {
 export const uploadVidFS = async (inputObj) => {
   if (!inputObj || !inputObj.vidSaveFolder) return null;
   const { vidSaveFolder } = inputObj;
-  const { tgUploadId } = CONFIG;
+  const { tgUploadId, kcnaWatchUploaded } = CONFIG;
 
   //create new tracking obj
   const uploadObj = { ...inputObj };
@@ -99,11 +99,18 @@ export const uploadVidFS = async (inputObj) => {
       console.log("RETURN PARAMS");
       console.log(uploadVidData);
 
-      //for tracking
       uploadVidDataArray.push(uploadVidData);
     }
 
+    if (!uploadVidDataArray || !uploadVidDataArray.length) return null;
+
     //STEP 3 STORE POSTED CHUNKS
+    const storeObj = { ...inputObj, uploadVidDataArray: uploadVidDataArray };
+    const storeModel = new dbModel(storeObj, kcnaWatchUploaded);
+    const storeData = await storeModel.storeUniqueURL();
+    console.log(storeData);
+
+    return storeObj;
   } catch (e) {
     console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
     console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
