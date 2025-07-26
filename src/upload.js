@@ -84,8 +84,9 @@ export const uploadVidItem = async (inputObj) => {
 
   const uploadVidDataArray = [];
   for (let i = 0; i < vidChunkArray.length; i++) {
-    if (!scrapeState.scrapeActive) return null;
+    // if (!scrapeState.scrapeActive) return null;
     try {
+      console.log("STARTING NEW CHUNK UPLOAD")
       const uploadChunks = vidChunkArray[i];
       const combineVidObj = await combineVidChunks(uploadChunks, inputObj);
       if (!combineVidObj) continue;
@@ -106,6 +107,7 @@ export const uploadVidItem = async (inputObj) => {
       if (!uploadData || !uploadData.ok) continue;
 
       const captionParams = { ...combineVidObj, ...inputObj };
+      captionParams.chunksToUpload = vidChunkArray.length;
 
       const vidCaption = await buildCaptionText(captionParams, "vid");
 
@@ -223,7 +225,6 @@ export const combineVidChunks = async (inputArray, inputObj) => {
     uploadFileName: outputFileName,
     uploadPath: combineVidPath,
     uploadIndex: uploadIndex,
-    chunksToUpload: inputArray.length,
   };
 
   return returnObj;
