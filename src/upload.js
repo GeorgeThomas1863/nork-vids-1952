@@ -91,8 +91,17 @@ export const uploadVidItem = async (inputObj) => {
     console.log(vidForm);
 
     const uploadData = await tgPostVidFS({ form: vidForm });
-    console.log("UPLOAD DATA");
-    console.log(uploadData);
+    if (!uploadData || !uploadData.ok) continue;
+    uploadObj.uploadData = uploadData.result;
+
+    console.log("UPLOAD OBJECT AFTER UPLOAD");
+    console.log(uploadObj);
+
+    //edit vid caption
+    // const vidCaption =
+
+    // console.log("UPLOAD DATA");
+    // console.log(uploadData);
   }
 };
 
