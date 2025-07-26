@@ -1,5 +1,7 @@
 //TO DO:
 
+//ADD THIS LOGIC TO SCRAPER
+
 //Check state logic throughout, ADD everything to DISPLAY
 
 //UPLOAD FINALLY WORKING
