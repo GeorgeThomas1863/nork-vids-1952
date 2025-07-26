@@ -208,7 +208,7 @@ class DLHelper {
     //writeStream.end();
     // console.log("Merge complete");
 
-    // Wait for the write stream to finish before returning
+    // Wait for the write stream to finish before returning (Cursor suggsetion)
     await new Promise((resolve, reject) => {
       writeStream.end();
       writeStream.on('finish', () => {
