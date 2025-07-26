@@ -162,7 +162,7 @@ export const getVidChunksFromFolder = async (inputObj) => {
   return vidChunkArray;
 };
 
-//loop through and upload in groups of 20
+//loop through and upload in groups of 10 (5 min vids)
 export const combineVidChunks = async (inputArray, inputObj) => {
   if (!inputArray || !inputArray.length) return null;
   const { vidSaveFolder, vidName } = inputObj;
