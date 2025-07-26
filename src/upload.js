@@ -106,8 +106,8 @@ export const uploadVidItem = async (inputObj) => {
       // console.log(uploadData);
 
       const captionParams = { ...combineVidObj, ...inputObj };
-      console.log("CAPTION PARAMS");
-      console.log(captionParams);
+      // console.log("CAPTION PARAMS");
+      // console.log(captionParams);
 
       const vidCaption = await buildCaptionText(captionParams, "vid");
 
@@ -118,16 +118,15 @@ export const uploadVidItem = async (inputObj) => {
       };
 
       const editVidData = await tgEditMessageCaption(uploadVidParams);
+      if (!editVidData || !editVidData.ok) continue;
+      uploadVidDataArray.push(uploadData.result);
 
-      console.log("VID EDIT DATA");
-      console.log(editVidData);
+      console.log("RETURN PARAMS");
+      console.log(uploadData.result);
     } catch (e) {
       console.log(`\nERROR! ${e.message} | FUNCTION: ${e.function} \n\n --------------------------------`);
       console.log(`\nARTICLE HTML: ${e.content} \n\n --------------------------------\n`);
     }
-
-    // console.log("UPLOAD DATA");
-    // console.log(uploadData);
   }
 };
 
@@ -139,11 +138,11 @@ export const buildCaptionText = async (inputObj, captionType = "title") => {
 
   const dateNormal = new Date(date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
   const titleNormal = `<b>${title} ${type}</b>`;
+  const titleStr = "🇰🇵 🇰🇵 🇰🇵";
 
   let captionText = "";
   switch (captionType) {
     case "title":
-      const titleStr = "🇰🇵 🇰🇵 🇰🇵";
       captionText = `--------------\n\n${titleStr} ${titleNormal} ${titleStr}\n\n--------------`;
       return captionText;
 
@@ -153,7 +152,7 @@ export const buildCaptionText = async (inputObj, captionType = "title") => {
       return captionText;
 
     case "vid":
-      captionText = `Chunk ${inputObj.uploadIndex} of ${inputObj.chunksToUpload}\n${title} ${type}\nFilename: ${inputObj.uploadFileName}`;
+      captionText = `<b>Chunk ${inputObj.uploadIndex} of ${inputObj.chunksToUpload}</b>\n\n${titleStr} ${titleNormal} ${titleStr}`;
       return captionText;
   }
 };
