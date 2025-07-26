@@ -80,39 +80,17 @@ export const uploadVidItem = async (inputObj) => {
 
   for (let i = 0; i < vidChunkArray.length; i++) {
     const uploadChunks = vidChunkArray[i];
-    const combineVidPath = await combineVidChunks(uploadChunks, inputObj);
-    console.log("COMBINED VID PATH");
-    console.log(combineVidPath);
-    console.log("--------------------------------");
+    const combineVidObj = await combineVidChunks(uploadChunks, inputObj);
+
+    const uploadObj = { ...combineVidObj, ...inputObj };
+
+    console.log(uploadObj);
+
+    // const vidForm = await buildVidForm(combineVidPath, inputObj);
+    // console.log("COMBINED VID PATH");
+    // console.log(combineVidPath);
+    // console.log("--------------------------------");
   }
-};
-
-//loop through and upload in groups of 20
-export const combineVidChunks = async (inputArray, inputObj) => {
-  if (!inputArray || !inputArray.length) return null;
-  const { vidSaveFolder, vidName } = inputObj;
-  const { vidUploadNumber } = CONFIG;
-
-  //CREATE THE CONCAT LIST
-  let concatList = "";
-  for (const chunk of inputArray) {
-    concatList += `file '${chunk}' \n`;
-  }
-
-  fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
-
-  //creat vid upload path
-  const uploadIndex = Math.floor(inputArray.length / vidUploadNumber) + 1;
-  const outputFileName = `${vidName}_${uploadIndex}.mp4`;
-  const combineVidPath = `${vidSaveFolder}${outputFileName}`;
-
-  //build ffmpeg cmd and execute
-  const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${combineVidPath}`;
-  await execAsync(cmd);
-
-  fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
-
-  return combineVidPath;
 };
 
 export const buildCaptionText = async (inputObj, captionType = "title") => {
@@ -169,6 +147,72 @@ export const getVidChunksFromFolder = async (inputObj) => {
 
   return vidChunkArray;
 };
+
+//loop through and upload in groups of 20
+export const combineVidChunks = async (inputArray, inputObj) => {
+  if (!inputArray || !inputArray.length) return null;
+  const { vidSaveFolder, vidName } = inputObj;
+  const { vidUploadNumber } = CONFIG;
+
+  //CREATE THE CONCAT LIST
+  let concatList = "";
+  for (const chunk of inputArray) {
+    concatList += `file '${chunk}' \n`;
+  }
+
+  fs.writeFileSync(`${vidSaveFolder}concat_list.txt`, concatList);
+
+  //creat vid upload path
+  const uploadIndex = Math.floor(inputArray.length / vidUploadNumber);
+  const outputFileName = `${vidName}_${uploadIndex}.mp4`;
+  const combineVidPath = `${vidSaveFolder}${outputFileName}`;
+
+  //build ffmpeg cmd and execute
+  const cmd = `ffmpeg -f concat -safe 0 -i ${vidSaveFolder}concat_list.txt -c copy ${combineVidPath}`;
+  await execAsync(cmd);
+
+  fs.unlinkSync(`${vidSaveFolder}concat_list.txt`);
+
+  const returnObj = {
+    uploadFileName: outputFileName,
+    uploadPath: combineVidPath,
+    uploadIndex: uploadIndex,
+  };
+
+  return returnObj;
+};
+
+//REENABLE
+// export const buildVidForm = async (uploadPath, inputObj) => {
+//   const { tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
+
+//   // const readStream = fs.createReadStream(uploadPath, { start: start, end: end - 1 });
+//   const readStream = fs.createReadStream(uploadPath);
+
+//   // Create form data for this chunk
+//   const formData = new FormData();
+//   formData.append("chat_id", tgUploadId);
+//   formData.append("video", readStream, {
+//     filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
+//     knownLength: end - start,
+//   });
+
+//   // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
+//   // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
+//   // console.log("--------------------------------");
+
+//   //set setting for auto play / streaming
+//   formData.append("supports_streaming", "true");
+//   formData.append("width", "1280");
+//   formData.append("height", "720");
+
+//   //add thumbnail
+//   // formData.append("thumb", fs.createReadStream(thumbnailPath));
+
+//   return formData;
+// };
+
+//------------------------------
 
 //uploads thumbnail and vid SEPARATELY (might want to change)
 // export const uploadVidFS = async (inputObj) => {
@@ -271,34 +315,6 @@ export const getVidChunksFromFolder = async (inputObj) => {
 //   }
 
 //   return chunkDataArray;
-// };
-
-// export const buildChunkForm = async (inputObj) => {
-//   const { savePath, tgUploadId, thumbnailPath, start, end, chunkNumber, uploadChunks } = inputObj;
-
-//   const readStream = fs.createReadStream(savePath, { start: start, end: end - 1 });
-
-//   // Create form data for this chunk
-//   const formData = new FormData();
-//   formData.append("chat_id", tgUploadId);
-//   formData.append("video", readStream, {
-//     filename: `chunk_${chunkNumber}_of_${uploadChunks}.mp4`,
-//     knownLength: end - start,
-//   });
-
-//   // console.log(`UPLOADING CHUNK ${chunkNumber} of ${uploadChunks}`);
-//   // console.log(`CHUNK SIZE: ${chunkEnd - chunkStart}`);
-//   // console.log("--------------------------------");
-
-//   //set setting for auto play / streaming
-//   formData.append("supports_streaming", "true");
-//   formData.append("width", "1280");
-//   formData.append("height", "720");
-
-//   //add thumbnail
-//   // formData.append("thumb", fs.createReadStream(thumbnailPath));
-
-//   return formData;
 // };
 
 //  //upload thumbnail
