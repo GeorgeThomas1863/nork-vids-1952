@@ -200,6 +200,7 @@ class DLHelper {
 
     for (let i = 0; i < downloadChunks; i++) {
       const chunkSavePath = `${tempPath}chunk_${i + 1}.mp4`;
+      if (!fs.existsSync(chunkSavePath)) continue;
       const chunkData = fs.readFileSync(chunkSavePath);
       writeStream.write(chunkData);
       fs.unlinkSync(chunkSavePath);
