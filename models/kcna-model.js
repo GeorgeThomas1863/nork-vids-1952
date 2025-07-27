@@ -206,6 +206,7 @@ class KCNA {
       const vidSize = fs.statSync(vidSavePath).size;
       if (vidSize * 1.2 < vidSizeBytes) {
         fs.unlinkSync(vidSavePath);
+        return null
       }
 
       return vidObj;
